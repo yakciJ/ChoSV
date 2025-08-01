@@ -27,7 +27,6 @@ namespace ChoSV
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();
