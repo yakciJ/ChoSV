@@ -6,7 +6,8 @@ namespace ChoSV.Models.Entities
     public class Product
     {
         public int ProductId { get; set; }
-        public int SellerId { get; set; }
+        [Required]
+        public required string SellerId { get; set; }
         [Required]
         public required string ProductName { get; set; }
         public string? ProductDescription { get; set; }
@@ -20,5 +21,8 @@ namespace ChoSV.Models.Entities
         public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
         [InverseProperty("Product")]
         public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+        [ForeignKey("SellerId")]
+        [InverseProperty("Products")]
+        public virtual User Seller { get; set; } = null!;
     }
 }

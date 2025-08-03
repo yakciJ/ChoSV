@@ -22,5 +22,13 @@ namespace ChoSV.Models.Entities
         public virtual ICollection<Message> SentMessages { get; set; } = new List<Message>();
         [InverseProperty("Receiver")]
         public virtual ICollection<Message> ReceivedMessages { get; set; } = new List<Message>();
+        [InverseProperty("Owner")]
+        public virtual ICollection<UserWallPost> WallPosts { get; set; } = new List<UserWallPost>();
+        [InverseProperty("Poster")]
+        public virtual ICollection<UserWallPost> PostsMade { get; set; } = new List<UserWallPost>();
+        [InverseProperty("User")]
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        [InverseProperty("Seller")]
+        public virtual ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

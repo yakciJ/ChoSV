@@ -5,7 +5,7 @@ namespace ChoSV.Models.Entities
 {
     public class Message
     {
-        public int Id { get; set; }
+        public int MessageId { get; set; }
         [Required]
         public required string SenderId { get; set; }
         [Required]

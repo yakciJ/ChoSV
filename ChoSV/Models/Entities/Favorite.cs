@@ -1,10 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ChoSV.Models.Entities
 {
     public class Favorite
     {
-        public int UserId { get; set; }
+        [Required]
+        public required string UserId { get; set; }
         public int ProductId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [ForeignKey("UserId")]
