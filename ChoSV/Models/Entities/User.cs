@@ -30,5 +30,9 @@ namespace ChoSV.Models.Entities
         public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
         [InverseProperty("Seller")]
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        [InverseProperty("Reporter")]
+        public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
+        [InverseProperty("User")]
+        public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }
 }
