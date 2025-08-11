@@ -1,5 +1,7 @@
 
+using ChoSV.Configurations;
 using ChoSV.Data;
+using ChoSV.Middlewares;
 using ChoSV.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -99,8 +101,15 @@ namespace ChoSV
                                       .AllowAnyHeader()
                                       .AllowAnyMethod());
             });
+
+            var emailConfig = builder.Configuration
+                .GetSection("EmailConfiguration")
+                .Get<EmailConfiguration>();
+            builder.Services.AddSingleton(emailConfig);
+
             var app = builder.Build();
 
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
