@@ -3,6 +3,8 @@ using ChoSV.Configurations;
 using ChoSV.Data;
 using ChoSV.Middlewares;
 using ChoSV.Models.Entities;
+using ChoSV.Services;
+using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -106,6 +108,9 @@ namespace ChoSV
                 .GetSection("EmailConfiguration")
                 .Get<EmailConfiguration>();
             builder.Services.AddSingleton(emailConfig);
+
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
 
             var app = builder.Build();
 
