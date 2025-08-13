@@ -16,10 +16,10 @@ namespace ChoSV.Services
         private readonly SymmetricSecurityKey _key;
         private readonly UserManager<User> _userManager;
         private readonly ApplicationDBContext _dbContext;
-        public TokenService(IConfiguration configuration, SymmetricSecurityKey key, UserManager<User> userManager, ApplicationDBContext dbContext)
+        public TokenService(IConfiguration configuration, UserManager<User> userManager, ApplicationDBContext dbContext)
         {
             _configuration = configuration;
-            _key = key;
+            _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration["JWT:SigningKey"]!));
             _userManager = userManager;
             _dbContext = dbContext;
         }
