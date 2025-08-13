@@ -110,6 +110,7 @@ namespace ChoSV
             builder.Services.AddSingleton(emailConfig);
 
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
 
 
             var app = builder.Build();
