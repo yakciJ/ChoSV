@@ -40,10 +40,13 @@ namespace ChoSV.Services
 
             var cred = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
+            var expirationMinutes = _configuration.GetValue<int>("JWT:ExpirationInMinutes");
+
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
                 SigningCredentials = cred,
                 Issuer = _configuration["JWT:Issuer"],
                 Audience = _configuration["JWT:Audience"]
@@ -65,8 +68,10 @@ namespace ChoSV.Services
             return Convert.ToBase64String(randomNumber);
         }
 
-        public async Task SaveRefreshTokenAsync(string userId, string refreshToken, string? deviceInfo = null, string? ipAddress = null)
+        public async Task SaveRefreshTokenAsync(bool rememberMe, string userId, string refreshToken, string? deviceInfo = null, string? ipAddress = null)
         {
+            var refreshTokenExpirationDays = rememberMe ? _configuration.GetValue<int>("JWT:RefreshTokenExpirationInDays") : _configuration.GetValue<int>("JWT:RefreshTokenShortExpirationInDays");
+
             var token = new RefreshToken
             {
                 Token = refreshToken,
@@ -75,7 +80,7 @@ namespace ChoSV.Services
                 IsRevoked = false,
                 CreatedAt = DateTime.UtcNow,
                 IpAddress = ipAddress,
-                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                ExpiryDate = DateTime.UtcNow.AddDays(refreshTokenExpirationDays),
             };
             _dbContext.RefreshTokens.Add(token);
             await _dbContext.SaveChangesAsync();

@@ -1,4 +1,4 @@
-
+﻿
 using ChoSV.Configurations;
 using ChoSV.Data;
 using ChoSV.Middlewares;
@@ -102,6 +102,13 @@ namespace ChoSV
                     builder => builder.AllowAnyOrigin()
                                       .AllowAnyHeader()
                                       .AllowAnyMethod());
+            });
+
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // khóa 5 phút
+                options.Lockout.MaxFailedAccessAttempts = 3; // sai 3 lần sẽ khóa
+                options.Lockout.AllowedForNewUsers = true; // áp dụng cho cả user mới
             });
 
             var emailConfig = builder.Configuration

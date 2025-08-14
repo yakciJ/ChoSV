@@ -14,7 +14,20 @@ namespace ChoSV.Controllers
         public async Task<IActionResult> Register(RegisterDTO registerDTO)
         {
             await _userService.RegisterAsync(registerDTO);
-            return Ok(new { message = "Successfully registered" });
+            return Ok(new { message = "Đăng ký thành công!" });
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDTO loginDTO)
+        {
+            return Ok(await _userService.LoginAsync(loginDTO));
+        }
+
+        [HttpPost("confirmEmail")]
+        public async Task<IActionResult> ConfirmEmailAsync(string email, string token)
+        {
+            await _userService.ConfirmEmailAsync(email, token);
+            return Ok(new { message = "Xác thực email thành công!" });
         }
     }
 }
