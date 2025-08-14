@@ -12,6 +12,7 @@ namespace ChoSV.Models.Entities
         [StringLength(255)]
         public string? AvatarImage { get; set; }
         public string? Bio { get; set; }
+        public string? Address { get; set; }
         public bool IsBanned { get; set; } = false;
         public int WarningCount { get; set; } = 0;
         public DateTime LastWarning { get; set; }

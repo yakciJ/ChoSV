@@ -106,5 +106,103 @@ namespace ChoSV.Services
                 throw new ArgumentException("Xác thực người dùng thất bại!");
             }
         }
+
+        public async Task UpdateUserProfileAsync(string userId, UpdateUserDTO updateUserDTO)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => userId == u.Id);
+            if (user == null)
+            {
+                throw new ArgumentException("Không tìm thấy người dùng!");
+            }
+            if (!string.IsNullOrEmpty(updateUserDTO.FullName))
+                user.FullName = updateUserDTO.FullName;
+
+            if (!string.IsNullOrEmpty(updateUserDTO.Bio))
+                user.Bio = updateUserDTO.Bio;
+
+            if (!string.IsNullOrEmpty(updateUserDTO.Address))
+                user.Address = updateUserDTO.Address;
+
+            if (!string.IsNullOrEmpty(updateUserDTO.PhoneNumber))
+                user.PhoneNumber = updateUserDTO.PhoneNumber;
+
+            var res = await _userManager.UpdateAsync(user);
+            if (!res.Succeeded)
+            {
+                throw new ArgumentException("Cập nhập thông tin người dùng  thất bại!");
+            }
+        }
+
+        public async Task DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
+            var res = await _userManager.DeleteAsync(user);
+            if (!res.Succeeded)
+            {
+                throw new ArgumentException("Xóa người dùng thất bại!");
+            }
+            await _tokenService.RevokeRefreshTokenAsync(userId);
+        }
+        public async Task ChangePasswordAsync(string userId, ChangePasswordDTO changePasswordDTO)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
+            if (user.EmailConfirmed == false)
+            {
+                throw new ArgumentException("Chưa xác thực Email, vui lòng xác thực Email để tiếp tục!");
+            }
+            var res = await _userManager.ChangePasswordAsync(user, changePasswordDTO.OldPassword, changePasswordDTO.NewPassword);
+            if (!res.Succeeded)
+            {
+                var errors = string.Join(", ", res.Errors.Select(e => e.Description));
+                throw new ArgumentException($"Đổi mật khẩu thất bại: {errors}");
+            }
+
+            await _tokenService.RevokeAllUserRefreshTokensAsync(userId);
+            await _emailService.SendChangedPasswordEmailAsync(user.Email!, user.UserName!);
+        }
+        public async Task ForgotPasswordAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return;
+            }
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            await _emailService.SendForgotPasswordEmailAsync(email, user.UserName!, resetToken);
+        }
+        public async Task ResetPasswordAsync(ResetPasswordDTO resetPasswordDTO)
+        {
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
+            if (user == null)
+            {
+                throw new ArgumentException("Đặt lại mật khẩu thất bại!");
+            }
+            var res = await _userManager.ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.NewPassword);
+            if (!res.Succeeded)
+            {
+                var errors = string.Join(", ", res.Errors.Select(e => e.Description));
+                throw new ArgumentException($"Đặt lại mật khẩu thất bại: {errors}");
+            }
+            await _tokenService.RevokeRefreshTokenAsync(user.Id);
+            await _emailService.SendChangedPasswordEmailAsync(user.Email!, user.UserName!);
+        }
+        public async Task UpdateAvatarAsync(string userId, string avatarUrl)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => userId == u.Id);
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
+            user.AvatarImage = avatarUrl;
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

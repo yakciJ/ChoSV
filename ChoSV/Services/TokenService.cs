@@ -29,7 +29,7 @@ namespace ChoSV.Services
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? string.Empty)
             };
 
             var role = await _userManager.GetRolesAsync(user);
@@ -41,7 +41,6 @@ namespace ChoSV.Services
             var cred = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
             var expirationMinutes = _configuration.GetValue<int>("JWT:ExpirationInMinutes");
-
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
