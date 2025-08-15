@@ -32,9 +32,15 @@ namespace ChoSV.Controllers
             return Ok(new { message = "Xác thực email thành công!" });
         }
 
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserByIdAsync(string userId)
+        {
+            return Ok(await _userService.GetUserByIdAsync(userId));
+        }
+
         [HttpPut("profile")]
         [Authorize(Policy = "UserPolicy")]
-        public async Task<IActionResult> UpdateProfileAsync(UpdateUserDTO updateUserDTO)
+        public async Task<IActionResult> UpdateUserProfileAsync(UpdateUserDTO updateUserDTO)
         {
             var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -43,6 +49,19 @@ namespace ChoSV.Controllers
             }
             await _userService.UpdateUserProfileAsync(userId, updateUserDTO);
             return Ok(new { message = "Cập nhập thông tin thành công!" });
+        }
+
+        [HttpPut("avatar")]
+        [Authorize(Policy = "UserPolicy")]
+        public async Task<IActionResult> UpdateAvatarAsync(string imageUrl)
+        {
+            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Không thể xác định người dùng!");
+            }
+            await _userService.UpdateAvatarAsync(userId, imageUrl);
+            return Ok(new { message = "Đổi ảnh đại diện thành công!" });
         }
 
         [HttpDelete("account")]
@@ -54,14 +73,6 @@ namespace ChoSV.Controllers
             {
                 return Unauthorized("Không thể xác định người dùng!");
             }
-            await _userService.DeleteUserAsync(userId);
-            return Ok(new { message = "Xóa tài khoản thành công!" });
-        }
-
-        [HttpDelete("admin/{userId}")]
-        [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> AdminDeleteUserAsync(string userId)
-        {
             await _userService.DeleteUserAsync(userId);
             return Ok(new { message = "Xóa tài khoản thành công!" });
         }
@@ -91,6 +102,30 @@ namespace ChoSV.Controllers
         {
             await _userService.ResetPasswordAsync(resetPasswordDTO);
             return Ok(new { message = "Mật khẩu đã được đổi thành công!" });
+        }
+
+        [HttpGet("admin/users")]
+        //[Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> GetAllUsersAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _userService.GetAllUsersByPageAsync(page, pageSize);
+            return Ok(result);
+        }
+
+        [HttpDelete("admin/{userId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminDeleteUserAsync(string userId)
+        {
+            await _userService.DeleteUserAsync(userId);
+            return Ok(new { message = "Xóa tài khoản thành công!" });
+        }
+
+        [HttpPut("admin/ban/{userId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminBanOrUnban(string userId)
+        {
+            await _userService.BanOrUnbanAsync(userId);
+            return Ok(new { message = "Người dùng đã bị chặn/bỏ chặn thành công!" });
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using ChoSV.Data;
+using ChoSV.Models.DTOs.Common;
 using ChoSV.Models.DTOs.User;
 using ChoSV.Models.Entities;
+using ChoSV.Models.Mappers;
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -107,6 +109,16 @@ namespace ChoSV.Services
             }
         }
 
+        public async Task<GetUserProfileDTO> GetUserByIdAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
+            return user.ToGetUserProfileDTO();
+        }
+
         public async Task UpdateUserProfileAsync(string userId, UpdateUserDTO updateUserDTO)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => userId == u.Id);
@@ -202,6 +214,48 @@ namespace ChoSV.Services
                 throw new ArgumentException("Người dùng không tồn tại!");
             }
             user.AvatarImage = avatarUrl;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        // Admin func
+        public async Task<PagedResult<AdminGetUserProfileDTO>> GetAllUsersByPageAsync(int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 1;
+            if (pageSize > 100) pageSize = 100;
+
+            int skip = (page - 1) * pageSize;
+
+            var totalCount = await _dbContext.Users.CountAsync();
+
+            var users = await _dbContext.Users.OrderBy(u => u.CreatedAt)
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var userDTO = users.Select(u => u.ToAdminGetUserProfileDTO()).ToList();
+
+            return new PagedResult<AdminGetUserProfileDTO>
+            {
+                Items = userDTO,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task BanOrUnbanAsync(string userId)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
+            user.IsBanned = !user.IsBanned;
+            if (user.IsBanned)
+            {
+                await _tokenService.RevokeAllUserRefreshTokensAsync(userId);
+            }
             await _dbContext.SaveChangesAsync();
         }
     }
