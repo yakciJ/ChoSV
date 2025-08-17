@@ -110,7 +110,9 @@ namespace ChoSV.Services
         }
         public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
         {
-            return await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token);
+            return await _dbContext.RefreshTokens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Token == token);
         }
         public async Task RevokeRefreshTokenAsync(string token)
         {

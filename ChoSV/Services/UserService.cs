@@ -111,7 +111,9 @@ namespace ChoSV.Services
 
         public async Task<GetUserProfileDTO> GetUserByIdAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("Người dùng không tồn tại!");
@@ -229,6 +231,7 @@ namespace ChoSV.Services
             var totalCount = await _dbContext.Users.CountAsync();
 
             var users = await _dbContext.Users.OrderBy(u => u.CreatedAt)
+                .AsNoTracking()
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();

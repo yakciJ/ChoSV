@@ -120,6 +120,8 @@ namespace ChoSV
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IImageService, ImageService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
             var app = builder.Build();
