@@ -1,4 +1,5 @@
-﻿using ChoSV.Models.DTOs.Product;
+﻿using ChoSV.Models.DTOs.Category;
+using ChoSV.Models.DTOs.Product;
 using ChoSV.Models.Entities;
 
 namespace ChoSV.Models.Mappers
@@ -45,8 +46,35 @@ namespace ChoSV.Models.Mappers
                 SellerName = product.Seller?.UserName ?? "Unknown",
                 FirstImageUrl = product.ProductImages?.FirstOrDefault()?.ImageUrl,
                 IsFavorited = !string.IsNullOrEmpty(userId) && product.Favorites.Any(f => f.UserId == userId),
-                FavoriteCount = product.Favorites?.Count ?? 0
+                FavoriteCount = product.Favorites?.Count ?? 0,
+                Categories = product.Categories?.Select(c => c.ToCategoryDTOFromCategory()).ToList() ?? new List<CategoryDTO>()
+
             };
+        }
+
+        public static ProductDetailListDTO ToProductDetailListDTO(this Product product)
+        {
+            return new ProductDetailListDTO
+            {
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
+                ProductPrice = product.Price,
+                ProductDescription = product.ProductDescription,
+                Status = product.Status,
+                SellerId = product.SellerId,
+                SellerName = product.Seller?.UserName ?? "Unknown",
+                CreatedDate = product.CreatedDate,
+                Categories = product.Categories?.Select(c => c.ToCategoryDTOFromCategory()).ToList() ?? new List<CategoryDTO>(),
+                FirstImageUrl = product.ProductImages?.FirstOrDefault()?.ImageUrl
+            };
+        }
+
+        public static void UpdateProductPost(this Product product, CreateProductPostDTO createProductPostDTO)
+        {
+            product.ProductName = createProductPostDTO.ProductName;
+            product.Price = createProductPostDTO.Price;
+            product.ProductDescription = createProductPostDTO.ProductDescription;
+            product.Status = "Pending";
         }
     }
 }

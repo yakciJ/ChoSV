@@ -1,4 +1,6 @@
-﻿namespace ChoSV.Models.DTOs.Product
+﻿using ChoSV.Models.DTOs.Category;
+
+namespace ChoSV.Models.DTOs.Product
 {
     public class ProductListItemDTO
     {
@@ -11,5 +13,7 @@
         public string? FirstImageUrl { get; set; }
         public bool IsFavorited { get; set; }
         public int FavoriteCount { get; set; }
+        public List<CategoryDTO> Categories { get; set; } = new List<CategoryDTO>(); 
+
     }
 }

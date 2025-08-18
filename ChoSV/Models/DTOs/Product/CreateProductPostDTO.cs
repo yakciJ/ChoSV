@@ -17,6 +17,6 @@ namespace ChoSV.Models.DTOs.Product
         [MinLength(1, ErrorMessage = "At least one category must be selected")]
         public List<int> CategoryIds { get; set; } = new List<int>();
 
-        public List<IFormFile> Images { get; set; } = new List<IFormFile>();
+        public List<string> ImagesUrl { get; set; } = new List<string>();
     }
 }

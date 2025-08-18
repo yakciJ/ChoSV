@@ -1,8 +1,6 @@
 ﻿using ChoSV.Models.DTOs.Product;
-using ChoSV.Models.Entities;
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -14,12 +12,13 @@ namespace ChoSV.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
         private readonly IProductService _productService;
 
-        public ProductController(IProductService productService, UserManager<User> userManager)
+        // xem  bài của bản thân (tính cả bài chưa duyệt, bài ẩn,..) nhưng giống admin, xem đc trạng thái các kiểu
+
+        // tổng 2 api.
+        public ProductController(IProductService productService)
         {
-            _userManager = userManager;
             _productService = productService;
         }
 
@@ -31,9 +30,34 @@ namespace ChoSV.Controllers
             return Ok(product);
         }
 
+        [HttpGet("me")]
+        [Authorize(Policy = "UserPolicy")]
+        public async Task<IActionResult> GetCurrentUserProductAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Không thể xác định người dùng!");
+            }
+            var products = await _productService.GetCurrentUserProductAsync(userId, page, pageSize);
+            return Ok(products);
+        }
+
+        [HttpGet("user/{targetUserId}")]
+        public async Task<IActionResult> GetUserProductPostAsync(string targetUserId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var currentUserId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            //if (string.IsNullOrEmpty(targetUserId))
+            //{
+            //    return Unauthorized("Không thể xác định người dùng!");
+            //}
+            var productsList = await _productService.GetUserProductPostsAsync(targetUserId, currentUserId, page, pageSize);
+            return Ok(productsList);
+        }
+
         [HttpPost]
         [Authorize(Policy = "UserPolicy")]
-        public async Task<IActionResult> CreateProductPost([FromForm] CreateProductPostDTO createProductPostDTO)
+        public async Task<IActionResult> CreateProductPostAsync([FromBody] CreateProductPostDTO createProductPostDTO)
         {
             var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -42,6 +66,56 @@ namespace ChoSV.Controllers
             }
             await _productService.CreateProductPostAsync(userId, createProductPostDTO);
             return Ok(new { message = "Tạo sản phẩm thành công!" });
+        }
+
+        [HttpPut("{productId}")]
+        [Authorize(Policy = "UserPolicy")]
+        public async Task<IActionResult> UpdateProductPostAsync(int productId, CreateProductPostDTO createProductPostDTO)
+        {
+            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Không thể xác định người dùng!");
+            }
+            await _productService.UpdateProductPostAsync(userId, productId, createProductPostDTO);
+            return Ok(new { message = "Cập nhập sản phẩm thành công!" });
+        }
+
+        [HttpDelete("user/{productId}")]
+        [Authorize(Policy = "UserPolicy")]
+        public async Task<IActionResult> DeleteProductPostAsync(int productId)
+        {
+            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Không thể xác định người dùng!");
+            }
+            await _productService.DeleteProductPostAsync(userId, productId);
+            return Ok(new { message = "Xóa sản phẩm thành công!" });
+        }
+
+        [HttpGet("admin/all")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminGetAllProductAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? status = null)
+        {
+            var pagedResult = await _productService.AdminGetAllProductAsync(page, pageSize, status);
+            return Ok(pagedResult);
+        }
+
+        [HttpPut("{productId}/status")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminUpdateProductStatusAsync(int productId, [FromBody] string status)
+        {
+            await _productService.AdminUpdateProductStatusAsync(productId, status);
+            return Ok(new { message = "Cập nhật trạng thái sản phẩm thành công!" });
+        }
+
+        [HttpDelete("admin/{productId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminDeleleProductPostAsync(int productId)
+        {
+            await _productService.AdminDeleteProductPostAsync(productId);
+            return Ok(new { message = "Xóa sản phẩm thành công!" });
         }
     }
 }

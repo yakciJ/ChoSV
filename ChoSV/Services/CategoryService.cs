@@ -68,7 +68,6 @@ namespace ChoSV.Services
                 ProductCount = totalProductCount,
                 Products = pagedProducts
             };
-
         }
 
         public async Task<List<CategoryDTO>> GetAllCategoriesAsync()
