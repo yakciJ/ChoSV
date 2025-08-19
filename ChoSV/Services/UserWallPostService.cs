@@ -110,5 +110,47 @@ namespace ChoSV.Services
             _dbcontext.UserWallPosts.Remove(userWallPost);
             await _dbcontext.SaveChangesAsync();
         }
+
+        public async Task<PagedResult<UserWallPostDetailListDTO>> GetAllUserWallPostsAsync(int page = 1, int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _dbcontext.UserWallPosts
+                .AsNoTracking()
+                .Include(u => u.Poster)
+                .OrderByDescending(u => u.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+
+            var userWallPosts = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var userWallPostDTOs = userWallPosts.Select(q => q.ToUserWallPostDetailListDTO()).ToList();
+
+            return new PagedResult<UserWallPostDetailListDTO>
+            {
+                Items = userWallPostDTOs,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task AdminDeleteUserWallPostByIdAsync(int userWallPostId)
+        {
+            var userWallPost = await _dbcontext.UserWallPosts.FirstOrDefaultAsync(u => u.UserWallPostId == userWallPostId);
+
+            if (userWallPost == null)
+            {
+                throw new ArgumentException("Không tìm thấy bình luận!");
+            }
+
+            _dbcontext.UserWallPosts.Remove(userWallPost);
+            await _dbcontext.SaveChangesAsync();
+        }
     }
 }

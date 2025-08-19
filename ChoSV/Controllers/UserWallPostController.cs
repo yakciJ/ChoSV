@@ -61,5 +61,20 @@ namespace ChoSV.Controllers
             await _userWallPostService.DeleteUserWallPostByIdAsync(userId, userWallPostId);
             return Ok("Xóa bình luận thành công!");
         }
+
+        [HttpGet]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> GetAllUserWallPostAsync(int page = 1, int pageSize = 10)
+        {
+            return Ok(await _userWallPostService.GetAllUserWallPostsAsync(page, pageSize));
+        }
+
+        [HttpDelete("admin/{userWallPostId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminDeleteWallPostByIdAsync(int userWallPostId)
+        {
+            await _userWallPostService.AdminDeleteUserWallPostByIdAsync(userWallPostId);
+            return Ok(new { message = "Xóa bình luận thành công!" });
+        }
     }
 }

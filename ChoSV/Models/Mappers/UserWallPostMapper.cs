@@ -18,5 +18,18 @@ namespace ChoSV.Models.Mappers
                 CreatedAt = userWallPost.CreatedAt
             };
         }
+
+        public static UserWallPostDetailListDTO ToUserWallPostDetailListDTO(this UserWallPost userWallPost)
+        {
+            return new UserWallPostDetailListDTO
+            {
+                UserWallPostId = userWallPost.UserWallPostId,
+                UserWallOwnerId = userWallPost.UserWallOwnerId,
+                PosterId = userWallPost.PosterId,
+                PosterUserName = userWallPost.Poster?.UserName ?? string.Empty,
+                CommentContent = userWallPost.CommentContent,
+                CreatedAt = userWallPost.CreatedAt
+            };
+        }
     }
 }
