@@ -79,13 +79,13 @@ namespace ChoSV.Services
             if (pageSize > 100) pageSize = 100;
 
             var query = _dbContext.Products
-            .AsNoTracking()
-            .Include(p => p.Seller)
-            .Include(p => p.ProductImages)
-            .Include(p => p.Favorites)
-            .Include(p => p.Categories)
-            .Where(p => p.SellerId == userId && (p.Status == "Approved" || p.Status == "Sold"))
-            .OrderByDescending(p => p.CreatedDate);
+                .AsNoTracking()
+                .Include(p => p.Seller)
+                .Include(p => p.ProductImages)
+                .Include(p => p.Favorites)
+                .Include(p => p.Categories)
+                .Where(p => p.SellerId == userId && (p.Status == "Approved" || p.Status == "Sold"))
+                .OrderByDescending(p => p.CreatedDate);
 
             var totalCount = await query.CountAsync();
 

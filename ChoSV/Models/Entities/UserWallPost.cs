@@ -20,6 +20,5 @@ namespace ChoSV.Models.Entities
         [ForeignKey("PosterId")]
         [InverseProperty("PostsMade")]
         public virtual User Poster { get; set; } = null!;
-
     }
 }
