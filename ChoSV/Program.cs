@@ -25,7 +25,8 @@ namespace ChoSV
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-
+            // Add SignalR
+            builder.Services.AddSignalR();
             builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection")));
 
@@ -122,6 +123,8 @@ namespace ChoSV
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IChatService, ChatService>();
+
 
 
             var app = builder.Build();
@@ -135,7 +138,7 @@ namespace ChoSV
                 app.UseSwaggerUI();
             }
 
-            app.UseCors("AllowAll");
+            app.UseCors("AllowSpecificOrigin");
 
             app.UseAuthentication();
 
@@ -144,6 +147,8 @@ namespace ChoSV
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapHub<ChatHub>("/chathub");
 
             app.Run();
         }
