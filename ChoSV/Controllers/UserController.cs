@@ -2,7 +2,7 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChoSV.Controllers
 {
@@ -42,7 +42,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> UpdateUserProfileAsync(UpdateUserDTO updateUserDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");
@@ -55,7 +55,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> UpdateAvatarAsync(string imageUrl)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");
@@ -68,7 +68,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> DeleteUserAsync()
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");
@@ -81,7 +81,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> ChangePasswordAsync(ChangePasswordDTO changePasswordDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");

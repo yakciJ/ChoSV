@@ -2,7 +2,7 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChoSV.Controllers
 {
@@ -21,7 +21,7 @@ namespace ChoSV.Controllers
         [HttpGet("history/{otherUserId}")]
         public async Task<IActionResult> GetChatHistory(string otherUserId, int page = 1, int pageSize = 50)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -34,7 +34,7 @@ namespace ChoSV.Controllers
         [HttpGet("unread")]
         public async Task<IActionResult> GetNewestUnreadMessage()
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -47,7 +47,7 @@ namespace ChoSV.Controllers
         [HttpGet("unread/count")]
         public async Task<IActionResult> GetUnreadMessageCount()
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -60,7 +60,7 @@ namespace ChoSV.Controllers
         [HttpGet("recent")]
         public async Task<IActionResult> GetRecentChats()
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -73,7 +73,7 @@ namespace ChoSV.Controllers
         [HttpPost("mark-read/{messageId}")]
         public async Task<IActionResult> MarkAsRead(int messageId)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -86,7 +86,7 @@ namespace ChoSV.Controllers
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage(SendMessageDTO sendMessageDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");

@@ -2,7 +2,7 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChoSV.Controllers
 {
@@ -19,7 +19,7 @@ namespace ChoSV.Controllers
         [HttpGet("{categoryId}/products/")]
         public async Task<IActionResult> GetCategoryByIdAsync(int categoryId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var result = await _categoryService.GetCategoryByIdAsync(categoryId, page, pageSize, userId);
             return Ok(result);
         }

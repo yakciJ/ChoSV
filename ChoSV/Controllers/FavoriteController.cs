@@ -1,11 +1,11 @@
 ﻿using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChoSV.Controllers
 {
-    [Route("api/{controller}")]
+    [Route("api/[controller]")]
     [ApiController]
     public class FavoriteController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> GetAllFavoriteProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -34,8 +34,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> AddFavoriteAsync(int productId)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
-
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("User ID not found in token");
@@ -49,7 +48,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> DeleteFavoriteAsync(int productId)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {

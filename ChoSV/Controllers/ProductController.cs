@@ -2,7 +2,7 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 
 
@@ -25,7 +25,7 @@ namespace ChoSV.Controllers
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetProductByIdAsync(int productId)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var product = await _productService.GetProductByIdAsync(productId, userId);
             return Ok(product);
         }
@@ -34,7 +34,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> GetCurrentUserProductAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");
@@ -46,7 +46,7 @@ namespace ChoSV.Controllers
         [HttpGet("user/{targetUserId}")]
         public async Task<IActionResult> GetUserProductPostAsync(string targetUserId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var currentUserId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //if (string.IsNullOrEmpty(targetUserId))
             //{
             //    return Unauthorized("Không thể xác định người dùng!");
@@ -59,7 +59,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> CreateProductPostAsync([FromBody] CreateProductPostDTO createProductPostDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");
@@ -72,7 +72,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> UpdateProductPostAsync(int productId, CreateProductPostDTO createProductPostDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");
@@ -85,7 +85,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> DeleteProductPostAsync(int productId)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized("Không thể xác định người dùng!");

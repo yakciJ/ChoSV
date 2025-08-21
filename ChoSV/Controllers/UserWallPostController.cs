@@ -2,11 +2,11 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChoSV.Controllers
 {
-    [Route("api/{controller}")]
+    [Route("api/[controller]")]
     [ApiController]
     public class UserWallPostController : ControllerBase
     {
@@ -26,7 +26,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> CreateUserWallPostAsync(CreateUserWallPostDTO createUserWallPostDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -39,7 +39,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> UpdateUserWallPostAsync(UpdateUserWallPostDTO updateUserWallPostDTO)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");
@@ -53,7 +53,7 @@ namespace ChoSV.Controllers
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> DeleteUserWallPostByIdAsync(int userWallPostId)
         {
-            var userId = User.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
             {
                 return Unauthorized("Chưa đăng nhập!");

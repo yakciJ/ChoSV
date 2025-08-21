@@ -1,6 +1,7 @@
 ﻿
 using ChoSV.Configurations;
 using ChoSV.Data;
+using ChoSV.Hubs;
 using ChoSV.Middlewares;
 using ChoSV.Models.Entities;
 using ChoSV.Services;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace ChoSV
 {
@@ -23,7 +25,34 @@ namespace ChoSV
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(option =>
+            {
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "ChoSV", Version = "v1" });
+                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Nhập token hợp lệ",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+            });
+
 
             // Add SignalR
             builder.Services.AddSignalR();
@@ -37,7 +66,7 @@ namespace ChoSV
 
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+                //options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
                 options.AddPolicy("UserPolicy", policy => policy.RequireRole("User", "Admin"));
             });
 
@@ -53,8 +82,9 @@ namespace ChoSV
                 options.Password.RequiredLength = 8; // password phai co it nhat 8 ky tu
                 options.User.RequireUniqueEmail = true; // email phai la duy nhat
             })
-    .AddEntityFrameworkStores<ApplicationDBContext>()
-    .AddDefaultTokenProviders(); // de reset password, confirm email, ...
+                .AddEntityFrameworkStores<ApplicationDBContext>()
+                .AddDefaultTokenProviders(); // de reset password, confirm email, ...
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme =
@@ -92,6 +122,7 @@ namespace ChoSV
                     }
                 };
             });
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin",
@@ -124,8 +155,8 @@ namespace ChoSV
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IChatService, ChatService>();
-
-
+            builder.Services.AddScoped<IUserWallPostService, UserWallPostService>();
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 
             var app = builder.Build();
 
@@ -140,9 +171,11 @@ namespace ChoSV
 
             app.UseCors("AllowSpecificOrigin");
 
-            app.UseAuthentication();
+            app.UseDeveloperExceptionPage();
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

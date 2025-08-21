@@ -57,10 +57,10 @@ namespace ChoSV.Services
             {
                 throw new ArgumentException("Người dùng không tồn tại!");
             }
-            if (user.EmailConfirmed == false)
-            {
-                throw new ArgumentException("Chưa xác thực Email, vui lòng xác thực Email để tiếp tục đăng nhập!");
-            }
+            //if (user.EmailConfirmed == false)
+            //{
+            //    throw new ArgumentException("Chưa xác thực Email, vui lòng xác thực Email để tiếp tục đăng nhập!");
+            //}
             if (user.IsBanned == true)
             {
                 throw new ArgumentException("Tài khoản của bạn đã bị chặn!");
