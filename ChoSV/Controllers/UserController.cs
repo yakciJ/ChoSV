@@ -11,7 +11,13 @@ namespace ChoSV.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService) => _userService = userService;
+        private readonly IConfiguration _configuration;
+        public UserController(IUserService userService, IConfiguration configuration)
+        {
+            _userService = userService;
+            _configuration = configuration;
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDTO registerDTO)
         {
@@ -22,7 +28,22 @@ namespace ChoSV.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
-            return Ok(await _userService.LoginAsync(loginDTO));
+            var res = await _userService.LoginAsync(loginDTO);
+            var refreshTokenExpirationDays = loginDTO.RememberMe ? _configuration.GetValue<int>("JWT:RefreshTokenExpirationInDays") : _configuration.GetValue<int>("JWT:RefreshTokenShortExpirationInDays");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = "/api/User/refreshToken",
+                Expires = DateTime.UtcNow.AddDays(refreshTokenExpirationDays)
+            };
+
+            Response.Cookies.Append("refreshToken", res.RefreshToken, cookieOptions);
+
+            res.RefreshToken = string.Empty;
+
+            return Ok(res);
         }
 
         [HttpPost("confirmEmail")]
@@ -30,6 +51,13 @@ namespace ChoSV.Controllers
         {
             await _userService.ConfirmEmailAsync(email, token);
             return Ok(new { message = "Xác thực email thành công!" });
+        }
+
+        [HttpGet("refreshToken")]
+        public async Task<IActionResult> GetAccessTokenAsync()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            return Ok(await _userService.GetAccessTokenAsync(refreshToken));
         }
 
         [HttpGet("{userId}")]
@@ -126,6 +154,20 @@ namespace ChoSV.Controllers
         {
             await _userService.BanOrUnbanAsync(userId);
             return Ok(new { message = "Người dùng đã bị chặn/bỏ chặn thành công!" });
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,         // Frontend JS không đọc được
+                Secure = true,           // Chỉ HTTPS
+                SameSite = SameSiteMode.Strict,
+                Path = "/api/auth/refreshToken", // 🔒 chỉ gửi cookie này khi gọi đúng endpoint
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
     }
 }

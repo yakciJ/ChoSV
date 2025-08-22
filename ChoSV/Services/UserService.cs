@@ -109,6 +109,25 @@ namespace ChoSV.Services
             }
         }
 
+        public async Task<string> GetAccessTokenAsync(string refreshToken)
+        {
+            Console.WriteLine(refreshToken);
+            var RT = await _dbContext.RefreshTokens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            if (RT == null || !RT.IsActive)
+            {
+                throw new ArgumentException("Refresh token không hợp lệ!");
+            }
+            var user = await _userManager.FindByIdAsync(RT.UserId);
+            if (user == null)
+            {
+                throw new ArgumentException("Refresh token không hợp lệ!");
+            }
+            var accessToken = await _tokenService.GenerateJwtToken(user);
+            return accessToken;
+        }
+
         public async Task<GetUserProfileDTO> GetUserByIdAsync(string userId)
         {
             var user = await _dbContext.Users
@@ -261,5 +280,7 @@ namespace ChoSV.Services
             }
             await _dbContext.SaveChangesAsync();
         }
+
+
     }
 }

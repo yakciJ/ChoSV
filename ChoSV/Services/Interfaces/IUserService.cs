@@ -8,6 +8,7 @@ namespace ChoSV.Services.Interfaces
         Task<bool> RegisterAsync(RegisterDTO registerDTO);
         Task<LoginResponseDTO> LoginAsync(LoginDTO loginDTO);
         Task ConfirmEmailAsync(string email, string token);
+        Task<string> GetAccessTokenAsync(string refreshToken);
         Task<GetUserProfileDTO> GetUserByIdAsync(string userId);
         Task UpdateUserProfileAsync(string userId, UpdateUserDTO updateUserDTO);
         Task DeleteUserAsync(string userId);
