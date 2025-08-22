@@ -2,7 +2,7 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ChoSV.Hubs
 {
@@ -19,7 +19,7 @@ namespace ChoSV.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            var userId = Context.User?.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId != null)
             {
                 ConnectedUsers[userId] = Context.ConnectionId;
@@ -33,7 +33,7 @@ namespace ChoSV.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            var userId = Context.User?.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId != null)
             {
                 ConnectedUsers.Remove(userId);
@@ -47,7 +47,7 @@ namespace ChoSV.Hubs
 
         public async Task SendMessage(SendMessageDTO sendMessageDTO)
         {
-            var senderId = Context.User?.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var senderId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (senderId == null)
             {
                 await Clients.Caller.SendAsync("Error", "Chưa đăng nhập!");
@@ -75,7 +75,7 @@ namespace ChoSV.Hubs
 
         public async Task MarkAsRead(int messageId)
         {
-            var userId = Context.User?.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null) return;
 
             try
@@ -91,7 +91,7 @@ namespace ChoSV.Hubs
 
         public async Task JoinPrivateChat(string receiverId)
         {
-            var senderId = Context.User?.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var senderId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (senderId == null) return;
 
             var chatRoomName = GetChatRoomName(senderId, receiverId);
@@ -100,7 +100,7 @@ namespace ChoSV.Hubs
 
         public async Task LeavePrivateChat(string receiverId)
         {
-            var senderId = Context.User?.FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
+            var senderId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (senderId == null) return;
 
             var chatRoomName = GetChatRoomName(senderId, receiverId);
