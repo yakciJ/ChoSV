@@ -11,5 +11,6 @@ namespace ChoSV.Services.Interfaces
         Task<MessageDTO?> GetNewestUnreadMessageAsync(string userId);
         Task<int> GetUnreadMessagesCountAsync(string userId);
         Task<List<MessageDTO>> GetRecentChatsAsync(string userId);
+        // 2 cái GetRecentChatsAsync và GetNewestUnreadMessageAsync hình như hơi giống nhau
     }
 }

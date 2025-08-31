@@ -22,6 +22,5 @@ namespace ChoSV.Models.Entities
         [ForeignKey("ReporterId")]
         [InverseProperty("Reports")]
         public virtual User Reporter { get; set; } = null!;
-
     }
 }

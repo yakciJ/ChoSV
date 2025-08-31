@@ -69,7 +69,7 @@ namespace ChoSV.Controllers
             var recentChats = await _chatService.GetRecentChatsAsync(userId);
             return Ok(recentChats);
         }
-
+        // cái này cũng thừa
         [HttpPost("mark-read/{messageId}")]
         public async Task<IActionResult> MarkAsRead(int messageId)
         {
@@ -82,7 +82,7 @@ namespace ChoSV.Controllers
             await _chatService.MarkAsReadAsync(userId, messageId);
             return Ok(new { message = "Tin nhắn đã được đánh dấu đã đọc" });
         }
-
+        // cái này hình như hơi thừa
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage(SendMessageDTO sendMessageDTO)
         {

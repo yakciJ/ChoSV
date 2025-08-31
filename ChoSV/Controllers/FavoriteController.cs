@@ -7,6 +7,7 @@ namespace ChoSV.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = "UserPolicy")]
     public class FavoriteController : ControllerBase
     {
         private readonly IFavoriteService _favoriteService;
@@ -16,7 +17,6 @@ namespace ChoSV.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> GetAllFavoriteProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -31,7 +31,6 @@ namespace ChoSV.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> AddFavoriteAsync(int productId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -45,7 +44,6 @@ namespace ChoSV.Controllers
         }
 
         [HttpDelete]
-        [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> DeleteFavoriteAsync(int productId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

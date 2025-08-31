@@ -13,11 +13,13 @@ namespace ChoSV.Services
         private readonly ApplicationDBContext _dbContext;
         private readonly ICategoryService _categoryService;
         private readonly IImageService _imageService;
-        public ProductService(ApplicationDBContext dbContext, ICategoryService categoryService, IImageService imageService)
+        private readonly INotificationService _notificationService;
+        public ProductService(ApplicationDBContext dbContext, ICategoryService categoryService, IImageService imageService, INotificationService notificationService)
         {
             _dbContext = dbContext;
             _categoryService = categoryService;
             _imageService = imageService;
+            _notificationService = notificationService;
         }
 
         public async Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId)
@@ -309,6 +311,8 @@ namespace ChoSV.Services
 
             product.Status = status;
             await _dbContext.SaveChangesAsync();
+
+            await _notificationService.SendProductNotificationAsync(product);
         }
 
         public async Task AdminDeleteProductPostAsync(int productId)
@@ -341,8 +345,13 @@ namespace ChoSV.Services
                 _dbContext.ProductImages.RemoveRange(product.ProductImages);
             }
 
+            var userId = product.SellerId;
+            var productName = product.ProductName;
+
             _dbContext.Products.Remove(product);
             await _dbContext.SaveChangesAsync();
+
+            await _notificationService.SendProductNotificationAsync(userId, productName);
         }
     }
 }

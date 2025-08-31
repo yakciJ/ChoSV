@@ -113,8 +113,7 @@ namespace ChoSV
                     {
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) &&
-                            path.StartsWithSegments("/chathub"))
+                        if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/chathub") || path.StartsWithSegments("/notificationhub")))
                         {
                             context.Token = accessToken;
                         }
@@ -157,6 +156,7 @@ namespace ChoSV
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IUserWallPostService, UserWallPostService>();
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             var app = builder.Build();
 
@@ -182,6 +182,8 @@ namespace ChoSV
             app.MapControllers();
 
             app.MapHub<ChatHub>("/chathub");
+
+            app.MapHub<NotificationHub>("/notificationhub"); // Add this line
 
             app.Run();
         }

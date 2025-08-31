@@ -155,19 +155,5 @@ namespace ChoSV.Controllers
             await _userService.BanOrUnbanAsync(userId);
             return Ok(new { message = "Người dùng đã bị chặn/bỏ chặn thành công!" });
         }
-
-        private void SetRefreshTokenCookie(string refreshToken)
-        {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,         // Frontend JS không đọc được
-                Secure = true,           // Chỉ HTTPS
-                SameSite = SameSiteMode.Strict,
-                Path = "/api/auth/refreshToken", // 🔒 chỉ gửi cookie này khi gọi đúng endpoint
-                Expires = DateTime.UtcNow.AddDays(7)
-            };
-
-            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
-        }
     }
 }
