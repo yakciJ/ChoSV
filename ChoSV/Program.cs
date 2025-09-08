@@ -157,6 +157,7 @@ namespace ChoSV
             builder.Services.AddScoped<IUserWallPostService, UserWallPostService>();
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<IReportService, ReportService>();
 
             var app = builder.Build();
 
