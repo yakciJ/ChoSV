@@ -22,6 +22,13 @@ namespace ChoSV.Controllers
             _productService = productService;
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchAndFilterProductAsync([FromQuery] string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var products = await _productService.SearchAndFilterProductsAsync(search, categoryId, minPrice, maxPrice, page, pageSize);
+            return Ok(products);
+        }
+
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetProductByIdAsync(int productId)
         {

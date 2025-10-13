@@ -5,6 +5,7 @@ namespace ChoSV.Services.Interfaces
 {
     public interface IProductService
     {
+        Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize);
         Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId);
         Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10);
         Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userId, string? currentUserId, int page = 1, int pageSize = 10);
@@ -27,4 +28,8 @@ namespace ChoSV.Services.Interfaces
     // Nhớ khi làm frontend: Khi người dùng upload ảnh lên mà k submit product (create or update) nhớ gọi api xóa đống đấy đi cho đỡ rác.
 
     // Rảnh chó thì làm thêm phần valid url ảnh.
+
+    // thiếu tìm kiếm, đợi tích hợp AI, và rảnh chó thì làm thêm cái k dùng AI
+    // Thiếu lọc theo cate, giá, vv you name it
+    // thiếu lấy theo cate.
 }

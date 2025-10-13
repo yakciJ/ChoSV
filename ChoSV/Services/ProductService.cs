@@ -1,10 +1,13 @@
-﻿using ChoSV.Data;
+﻿using ChoSV.Configurations;
+using ChoSV.Data;
 using ChoSV.Models.DTOs.Common;
 using ChoSV.Models.DTOs.Product;
 using ChoSV.Models.Entities;
 using ChoSV.Models.Mappers;
 using ChoSV.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace ChoSV.Services
 {
@@ -14,12 +17,152 @@ namespace ChoSV.Services
         private readonly ICategoryService _categoryService;
         private readonly IImageService _imageService;
         private readonly INotificationService _notificationService;
-        public ProductService(ApplicationDBContext dbContext, ICategoryService categoryService, IImageService imageService, INotificationService notificationService)
+        private readonly HttpClient _httpClient;
+        private readonly AISearchSettings _aiSearchSettings;
+        public ProductService(ApplicationDBContext dbContext, ICategoryService categoryService, IImageService imageService, INotificationService notificationService, HttpClient httpClient,
+            IOptions<AISearchSettings> aiSearchSettings)
         {
             _dbContext = dbContext;
             _categoryService = categoryService;
             _imageService = imageService;
             _notificationService = notificationService;
+            _httpClient = httpClient; // ✅ Use injected HttpClient
+            _aiSearchSettings = aiSearchSettings.Value; // ✅ Use injected settings
+        }
+
+        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            // Validate price range
+            if (maxPrice.HasValue && minPrice.HasValue && maxPrice < minPrice)
+            {
+                throw new ArgumentException("Lọc không hợp lệ!");
+            }
+
+            // Check if we have any search criteria
+            bool hasFilters = categoryId.HasValue || minPrice.HasValue || maxPrice.HasValue;
+            if (search == null && !hasFilters)
+            {
+                throw new ArgumentException("Từ khóa không hợp lệ!");
+            }
+
+            var filteredProductIds = new List<int>();
+
+            if (hasFilters)
+            {
+                var query = _dbContext.Products
+                        .AsNoTracking()
+                        .Where(p => p.Status == "Approved" || p.Status == "Sold");
+
+                if (search == null)
+                    query = query
+                        .Include(p => p.Seller)
+                        .Include(p => p.ProductImages)
+                        .Include(p => p.Favorites)
+                        .Include(p => p.Categories);
+
+                if (categoryId.HasValue)
+                {
+                    query = query.Where(p => p.Categories.Any(c => c.CategoryId == categoryId.Value));
+                }
+
+                if (minPrice.HasValue)
+                {
+                    query = query.Where(p => p.Price >= minPrice.Value);
+                }
+
+                if (maxPrice.HasValue)
+                {
+                    query = query.Where(p => p.Price <= maxPrice.Value);
+                }
+
+                if (search != null)
+                {
+                    filteredProductIds = await query.Select(p => p.ProductId).ToListAsync();
+                    if (filteredProductIds.Count == 0)
+                    {
+                        return new PagedResult<ProductListItemDTO>
+                        {
+                            Items = new List<ProductListItemDTO>(),
+                            TotalCount = 0,
+                            Page = page,
+                            PageSize = pageSize
+                        };
+                    }
+                }
+                else
+                {
+                    var totalCount = await query.CountAsync();
+
+                    if (totalCount == 0)
+                    {
+                        return new PagedResult<ProductListItemDTO>
+                        {
+                            Items = new List<ProductListItemDTO>(),
+                            TotalCount = 0,
+                            Page = page,
+                            PageSize = pageSize
+                        };
+                    }
+                    var products = await query
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+
+                    var productDTOs = products.Select(p => p.ToProductListItemDTO()).ToList();
+
+                    return new PagedResult<ProductListItemDTO>
+                    {
+                        Items = productDTOs,
+                        TotalCount = totalCount,
+                        Page = page,
+                        PageSize = pageSize
+                    };
+                }
+            }
+
+            var aiResponse = await CallAISearchServiceAsync(search, filteredProductIds, page, pageSize);
+            if (aiResponse?.Results?.Any() == true)
+            {
+                // Get products in the order returned by AI service
+                var orderedProducts = new List<Product>();
+                foreach (var productId in aiResponse.Results)
+                {
+                    var product = await _dbContext.Products
+                        .AsNoTracking()
+                        .Include(p => p.Seller)
+                        .Include(p => p.ProductImages)
+                        .Include(p => p.Favorites)
+                        .Include(p => p.Categories)
+                        .FirstOrDefaultAsync(p => p.ProductId == productId);
+
+                    if (product != null)
+                    {
+                        orderedProducts.Add(product);
+                    }
+                }
+
+                var aiProductDTOs = orderedProducts.Select(p => p.ToProductListItemDTO(null)).ToList();
+
+                return new PagedResult<ProductListItemDTO>
+                {
+                    Items = aiProductDTOs,
+                    TotalCount = aiProductDTOs.Count,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
+
+            return new PagedResult<ProductListItemDTO>
+            {
+                Items = new List<ProductListItemDTO>(),
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId)
@@ -352,6 +495,42 @@ namespace ChoSV.Services
             await _dbContext.SaveChangesAsync();
 
             await _notificationService.SendProductNotificationAsync(userId, productName);
+        }
+
+        private async Task<AISearchResponseDTO?> CallAISearchServiceAsync(string search, List<int>? productIds, int page, int pageSize)
+        {
+            try
+            {
+                // Set the API key header
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSearchSettings.ApiKey);
+
+                // Build the URL
+                var productIdsString = string.Join(",", productIds ?? new List<int>());
+
+                var url = $"{_aiSearchSettings.BaseUrl}/search?q={Uri.EscapeDataString(search)}&page={page}&page_size={pageSize}&product_ids={productIdsString}";
+
+                var response = await _httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var aiResponse = JsonSerializer.Deserialize<AISearchResponseDTO>(jsonResponse, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    return aiResponse;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (you should use proper logging)
+                Console.WriteLine($"Error calling AI Search Service: {ex.Message}");
+                return null;
+            }
         }
     }
 }
