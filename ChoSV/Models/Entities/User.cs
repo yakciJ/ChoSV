@@ -35,5 +35,7 @@ namespace ChoSV.Models.Entities
         public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
         [InverseProperty("User")]
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        [InverseProperty("Viewer")]
+        public virtual ICollection<UserViewHistory> ViewHistories { get; set; } = new List<UserViewHistory>();
     }
 }

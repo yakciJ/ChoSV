@@ -24,5 +24,7 @@ namespace ChoSV.Models.Entities
         [ForeignKey("SellerId")]
         [InverseProperty("Products")]
         public virtual User Seller { get; set; } = null!;
+        [InverseProperty("Product")]
+        public virtual ICollection<UserViewHistory> UserViewsHistories { get; set; } = new List<UserViewHistory>();
     }
 }

@@ -21,6 +21,8 @@ namespace ChoSV.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<UserViewHistory> UserViewHistories { get; set; } // ✅ Added missing DbSet
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -112,6 +114,21 @@ namespace ChoSV.Data
             modelBuilder.Entity<Product>()
                 .Property(p => p.Price)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<UserViewHistory>()
+                .HasKey(v => new { v.UserId, v.ProductId });
+
+            modelBuilder.Entity<UserViewHistory>()
+                .HasOne(v => v.Viewer)
+                .WithMany(u => u.ViewHistories)
+                .HasForeignKey(v => v.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserViewHistory>()
+                .HasOne(v => v.Product)
+                .WithMany(p => p.UserViewsHistories)
+                .HasForeignKey(v => v.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
