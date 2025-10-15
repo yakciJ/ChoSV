@@ -157,6 +157,7 @@ namespace ChoSV
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IUserViewHistory, UserViewHistoryService>();
 
             builder.Services.AddHttpClient();
             builder.Services.Configure<AISearchSettings>(builder.Configuration.GetSection("AISearchService"));

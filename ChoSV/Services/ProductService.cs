@@ -30,7 +30,7 @@ namespace ChoSV.Services
             _aiSearchSettings = aiSearchSettings.Value; // ✅ Use injected settings
         }
 
-        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize)
+        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
