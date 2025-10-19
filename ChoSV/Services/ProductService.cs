@@ -18,16 +18,16 @@ namespace ChoSV.Services
         private readonly IImageService _imageService;
         private readonly INotificationService _notificationService;
         private readonly HttpClient _httpClient;
-        private readonly AISearchSettings _aiSearchSettings;
+        private readonly AISettings _aiSettings;
         public ProductService(ApplicationDBContext dbContext, ICategoryService categoryService, IImageService imageService, INotificationService notificationService, HttpClient httpClient,
-            IOptions<AISearchSettings> aiSearchSettings)
+            IOptions<AISettings> aiSettings)
         {
             _dbContext = dbContext;
             _categoryService = categoryService;
             _imageService = imageService;
             _notificationService = notificationService;
             _httpClient = httpClient; // ✅ Use injected HttpClient
-            _aiSearchSettings = aiSearchSettings.Value; // ✅ Use injected settings
+            _aiSettings = aiSettings.Value; // ✅ Use injected settings
         }
 
         public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10)
@@ -295,13 +295,38 @@ namespace ChoSV.Services
                 await _dbContext.ProductImages.AddRangeAsync(productImages);
                 await _dbContext.SaveChangesAsync();
             }
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
+
+                // Encode dữ liệu tiếng Việt để tránh lỗi URL
+                var encodedTitle = Uri.EscapeDataString(product.ProductName);
+                var selectedCategoryId = createProductPostDTO.CategoryIds.First();
+                var selectedCategory = categories.FirstOrDefault(c => c.CategoryId == selectedCategoryId);
+                var encodedCategory = Uri.EscapeDataString(selectedCategory?.Name ?? "Khác");
+
+                var aiUrl = $"{_aiSettings.BaseUrl}/insert?id={product.ProductId}&title={encodedTitle}&category={encodedCategory}";
+
+                var response = await _httpClient.PostAsync(aiUrl, null);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"⚠️ AI sync failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error calling AI Service: {ex.Message}");
+            }
         }
 
         public async Task UpdateProductPostAsync(string userId, int productId, CreateProductPostDTO createProductPostDTO)
         {
             var product = await _dbContext.Products
-                .Include(p => p.SellerId)
                 .Include(p => p.ProductImages)
+                .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.ProductId == productId);
             if (product == null)
             {
@@ -321,7 +346,11 @@ namespace ChoSV.Services
                 .ToListAsync();
 
             product.UpdateProductPost(createProductPostDTO);
-            product.Categories = categories;
+            product.Categories.Clear();
+            foreach (var category in categories)
+            {
+                product.Categories.Add(category);
+            }
 
             var existingImageUrls = product.ProductImages.Select(pi => pi.ImageUrl).ToList();
 
@@ -358,6 +387,31 @@ namespace ChoSV.Services
             }
 
             await _dbContext.SaveChangesAsync();
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
+
+                // Encode dữ liệu tiếng Việt để tránh lỗi URL
+                var encodedTitle = Uri.EscapeDataString(product.ProductName);
+                var selectedCategoryId = createProductPostDTO.CategoryIds.First();
+                var selectedCategory = categories.FirstOrDefault(c => c.CategoryId == selectedCategoryId);
+                var encodedCategory = Uri.EscapeDataString(selectedCategory?.Name ?? "Khác");
+
+                var aiUrl = $"{_aiSettings.BaseUrl}/update?id={product.ProductId}&title={encodedTitle}&category={encodedCategory}";
+
+                var response = await _httpClient.PutAsync(aiUrl, null);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"⚠️ AI sync failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error calling AI Service: {ex.Message}");
+            }
 
         }
 
@@ -397,6 +451,25 @@ namespace ChoSV.Services
 
             _dbContext.Products.Remove(product);
             await _dbContext.SaveChangesAsync();
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
+
+                var aiUrl = $"{_aiSettings.BaseUrl}/delete?id={product.ProductId}";
+
+                var response = await _httpClient.DeleteAsync(aiUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"⚠️ AI sync failed: {(int)response.StatusCode} {response.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Error calling AI Service: {ex.Message}");
+            }
         }
 
 
@@ -503,12 +576,12 @@ namespace ChoSV.Services
             {
                 // Set the API key header
                 _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSearchSettings.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
 
                 // Build the URL
                 var productIdsString = string.Join(",", productIds ?? new List<int>());
 
-                var url = $"{_aiSearchSettings.BaseUrl}/search?q={Uri.EscapeDataString(search)}&page={page}&page_size={pageSize}&product_ids={productIdsString}";
+                var url = $"{_aiSettings.BaseUrl}/search?q={Uri.EscapeDataString(search)}&page={page}&page_size={pageSize}&product_ids={productIdsString}";
 
                 var response = await _httpClient.GetAsync(url);
 

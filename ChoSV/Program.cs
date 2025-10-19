@@ -65,7 +65,7 @@ namespace ChoSV
 
             builder.Services.AddAuthorization(options =>
             {
-                //options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
                 options.AddPolicy("UserPolicy", policy => policy.RequireRole("User", "Admin"));
             });
 
@@ -160,7 +160,7 @@ namespace ChoSV
             builder.Services.AddScoped<IUserViewHistory, UserViewHistoryService>();
 
             builder.Services.AddHttpClient();
-            builder.Services.Configure<AISearchSettings>(builder.Configuration.GetSection("AISearchService"));
+            builder.Services.Configure<AISettings>(builder.Configuration.GetSection("AIService"));
 
 
             var app = builder.Build();
@@ -188,7 +188,7 @@ namespace ChoSV
 
             app.MapHub<ChatHub>("/chathub");
 
-            app.MapHub<NotificationHub>("/notificationhub"); // Add this line
+            app.MapHub<NotificationHub>("/notificationhub");
 
             app.Run();
         }
