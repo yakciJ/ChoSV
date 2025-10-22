@@ -128,11 +128,11 @@ namespace ChoSV.Services
             return accessToken;
         }
 
-        public async Task<GetUserProfileDTO> GetUserByIdAsync(string userId)
+        public async Task<GetUserProfileDTO> GetUserByUserNameAsync(string userName)
         {
             var user = await _dbContext.Users
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId);
+                .FirstOrDefaultAsync(u => u.UserName == userName);
             if (user == null)
             {
                 throw new ArgumentException("Người dùng không tồn tại!");

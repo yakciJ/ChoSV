@@ -9,7 +9,7 @@ namespace ChoSV.Services.Interfaces
         Task<LoginResponseDTO> LoginAsync(LoginDTO loginDTO);
         Task ConfirmEmailAsync(string email, string token);
         Task<string> GetAccessTokenAsync(string refreshToken);
-        Task<GetUserProfileDTO> GetUserByIdAsync(string userId);
+        Task<GetUserProfileDTO> GetUserByUserNameAsync(string userName);
         Task UpdateUserProfileAsync(string userId, UpdateUserDTO updateUserDTO);
         Task DeleteUserAsync(string userId);
         Task ChangePasswordAsync(string userId, ChangePasswordDTO changePasswordDTO);

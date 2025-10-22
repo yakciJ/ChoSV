@@ -60,10 +60,10 @@ namespace ChoSV.Controllers
             return Ok(await _userService.GetAccessTokenAsync(refreshToken));
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUserByIdAsync(string userId)
+        [HttpGet("{userName}")]
+        public async Task<IActionResult> GetUserByUserNameAsync(string userName)
         {
-            return Ok(await _userService.GetUserByIdAsync(userId));
+            return Ok(await _userService.GetUserByUserNameAsync(userName));
         }
 
         [HttpPut("profile")]
