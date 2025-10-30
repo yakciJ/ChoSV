@@ -132,6 +132,28 @@ namespace ChoSV
                     builder => builder.AllowAnyOrigin()
                                       .AllowAnyHeader()
                                       .AllowAnyMethod());
+                options.AddPolicy("DevelopmentPolicy",
+                builder => builder.SetIsOriginAllowed(origin =>
+                {
+                    if (string.IsNullOrWhiteSpace(origin)) return false;
+
+                    // Allow localhost on any port
+                    if (origin.StartsWith("http://localhost:") || origin.StartsWith("https://localhost:"))
+                        return true;
+
+                    // Allow your local network IPs (adjust the pattern to match your network)
+                    if (origin.StartsWith("http://192.168.") || origin.StartsWith("https://192.168."))
+                        return true;
+
+                    // Allow other common local network ranges
+                    if (origin.StartsWith("http://10.") || origin.StartsWith("https://10."))
+                        return true;
+
+                    return false;
+                })
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials());
             });
 
             builder.Services.Configure<IdentityOptions>(options =>
@@ -165,18 +187,18 @@ namespace ChoSV
 
             var app = builder.Build();
 
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                //app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-            app.UseCors("AllowSpecificOrigin");
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-            app.UseDeveloperExceptionPage();
+            app.UseCors("DevelopmentPolicy");
 
             app.UseHttpsRedirection();
 

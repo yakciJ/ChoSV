@@ -57,6 +57,10 @@ namespace ChoSV.Controllers
         public async Task<IActionResult> GetAccessTokenAsync()
         {
             var refreshToken = Request.Cookies["refreshToken"];
+            if (refreshToken == null)
+            {
+                return Unauthorized("Không thể xác định người dùng!");
+            }
             return Ok(await _userService.GetAccessTokenAsync(refreshToken));
         }
 

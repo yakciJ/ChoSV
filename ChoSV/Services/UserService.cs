@@ -55,7 +55,7 @@ namespace ChoSV.Services
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == loginDTO.UserName);
             if (user == null)
             {
-                throw new ArgumentException("Người dùng không tồn tại!");
+                throw new ArgumentException("Tài khoản hoặc mật khẩu không đúng!");
             }
             //if (user.EmailConfirmed == false)
             //{
@@ -111,7 +111,6 @@ namespace ChoSV.Services
 
         public async Task<string> GetAccessTokenAsync(string refreshToken)
         {
-            Console.WriteLine(refreshToken);
             var RT = await _dbContext.RefreshTokens
                 .AsNoTracking()
                 .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
@@ -173,6 +172,54 @@ namespace ChoSV.Services
             {
                 throw new ArgumentException("Người dùng không tồn tại!");
             }
+            // Handle related data that has Restrict behavior before deleting the user
+
+            // 1. Delete messages where user is sender or receiver
+            var messagesToDelete = await _dbContext.Messages
+                .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+                .ToListAsync();
+            _dbContext.Messages.RemoveRange(messagesToDelete);
+
+            // 2. Delete user wall posts where user is owner or poster
+            var wallPostsToDelete = await _dbContext.UserWallPosts
+                .Where(w => w.UserWallOwnerId == userId || w.PosterId == userId)
+                .ToListAsync();
+            _dbContext.UserWallPosts.RemoveRange(wallPostsToDelete);
+
+            // 3. Delete favorites
+            var favoritesToDelete = await _dbContext.Favorites
+                .Where(f => f.UserId == userId)
+                .ToListAsync();
+            _dbContext.Favorites.RemoveRange(favoritesToDelete);
+
+            // 4. Handle products - delete them
+            var productsToDelete = await _dbContext.Products
+                .Where(p => p.SellerId == userId)
+                .ToListAsync();
+            _dbContext.Products.RemoveRange(productsToDelete);
+
+            // 5. Delete reports where user is the reporter
+            var reportsToDelete = await _dbContext.Reports
+                .Where(r => r.ReporterId == userId)
+                .ToListAsync();
+            _dbContext.Reports.RemoveRange(reportsToDelete);
+
+            var notificationsToDelete = await _dbContext.Notifications
+                .Where(n => n.FromUserId == userId)
+                .ToListAsync();
+            _dbContext.Notifications.RemoveRange(notificationsToDelete);
+
+            // 7. Delete user view history
+            var viewHistoriesToDelete = await _dbContext.UserViewHistories
+                .Where(v => v.UserId == userId)
+                .ToListAsync();
+            _dbContext.UserViewHistories.RemoveRange(viewHistoriesToDelete);
+
+            // Save changes for related data first
+            await _dbContext.SaveChangesAsync();
+
+            // 8. Revoke refresh tokens before deleting user
+            await _tokenService.RevokeRefreshTokenAsync(userId);
             var res = await _userManager.DeleteAsync(user);
             if (!res.Succeeded)
             {
