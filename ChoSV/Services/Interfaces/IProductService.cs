@@ -29,6 +29,8 @@ namespace ChoSV.Services.Interfaces
 
     // Rảnh chó thì làm thêm phần valid url ảnh.
 
+    // 
+
     // thiếu tìm kiếm, đợi tích hợp AI, và rảnh chó thì làm thêm cái k dùng AI
     // Thiếu lọc theo cate, giá, vv you name it
     // thiếu lấy theo cate.

@@ -56,7 +56,7 @@ namespace ChoSV
             // Add SignalR
             builder.Services.AddSignalR();
             builder.Services.AddDbContext<ApplicationDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultSQLConnection")));
 
             builder.Services.AddControllers().AddNewtonsoftJson(options =>
             {
@@ -74,12 +74,12 @@ namespace ChoSV
             {
                 //options.SignIn.RequireConfirmedAccount = true; // can phai confirm email khi dang ky
                 options.SignIn.RequireConfirmedEmail = false;
-                options.Password.RequireDigit = true; // password phai co it nhat 1 chu so
-                options.Password.RequireLowercase = true; // password phai co it nhat 1 chu thuong
-                options.Password.RequireNonAlphanumeric = true; // password phai co it nhat 1 ky tu dac biet
-                options.Password.RequireUppercase = true; // password phai co it nhat 1 chu hoa
-                options.Password.RequiredLength = 8; // password phai co it nhat 8 ky tu
-                options.User.RequireUniqueEmail = true; // email phai la duy nhat
+                options.Password.RequireDigit = false; // password phai co it nhat 1 chu so
+                options.Password.RequireLowercase = false; // password phai co it nhat 1 chu thuong
+                options.Password.RequireNonAlphanumeric = false; // password phai co it nhat 1 ky tu dac biet
+                options.Password.RequireUppercase = false; // password phai co it nhat 1 chu hoa
+                options.Password.RequiredLength = 1; // password phai co it nhat 8 ky tu
+                options.User.RequireUniqueEmail = false; // email phai la duy nhat
             })
                 .AddEntityFrameworkStores<ApplicationDBContext>()
                 .AddDefaultTokenProviders(); // de reset password, confirm email, ...

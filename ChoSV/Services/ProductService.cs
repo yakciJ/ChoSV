@@ -451,25 +451,6 @@ namespace ChoSV.Services
 
             _dbContext.Products.Remove(product);
             await _dbContext.SaveChangesAsync();
-
-            try
-            {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
-
-                var aiUrl = $"{_aiSettings.BaseUrl}/delete?id={product.ProductId}";
-
-                var response = await _httpClient.DeleteAsync(aiUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"⚠️ AI sync failed: {(int)response.StatusCode} {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error calling AI Service: {ex.Message}");
-            }
         }
 
 

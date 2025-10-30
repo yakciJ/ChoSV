@@ -65,14 +65,12 @@ namespace ChoSV.Services
         public async Task SawProduct(string userId, int productId)
         {
             await _dbContext.Database.ExecuteSqlRawAsync(@"
-                MERGE INTO [UserViewHistories] AS target
-                USING (VALUES ({0}, {1})) AS source ([UserId], [ProductId])
-                ON target.[UserId] = source.[UserId] AND target.[ProductId] = source.[ProductId]
-                WHEN MATCHED THEN
-                    UPDATE SET [ViewCount] = target.[ViewCount] + 1, [LastViewedAt] = GETUTCDATE()
-                WHEN NOT MATCHED THEN
-                    INSERT ([UserId], [ProductId], [ViewCount], [LastViewedAt])
-                    VALUES (source.[UserId], source.[ProductId], 1, GETUTCDATE());",
+                INSERT INTO ""UserViewHistories"" (""UserId"", ""ProductId"", ""ViewCount"", ""LastViewedAt"")
+                VALUES ({0}, {1}, 1, NOW() AT TIME ZONE 'UTC')
+                ON CONFLICT (""UserId"", ""ProductId"")
+                DO UPDATE SET 
+                    ""ViewCount"" = ""UserViewHistories"".""ViewCount"" + 1,
+                    ""LastViewedAt"" = NOW() AT TIME ZONE 'UTC';",
                 userId, productId);
         }
         public async Task DeleteHistory(string userId, int productId)
