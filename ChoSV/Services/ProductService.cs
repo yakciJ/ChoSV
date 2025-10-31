@@ -30,7 +30,7 @@ namespace ChoSV.Services
             _aiSettings = aiSettings.Value; // ✅ Use injected settings
         }
 
-        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10, string? userId = null)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
@@ -44,25 +44,23 @@ namespace ChoSV.Services
 
             // Check if we have any search criteria
             bool hasFilters = categoryId.HasValue || minPrice.HasValue || maxPrice.HasValue;
-            if (search == null && !hasFilters)
+            bool hasSearch = !string.IsNullOrWhiteSpace(search);
+
+            if (!hasSearch && !hasFilters)
             {
-                throw new ArgumentException("Từ khóa không hợp lệ!");
+                throw new ArgumentException("Vui lòng nhập từ khóa tìm kiếm hoặc chọn bộ lọc!");
             }
 
-            var filteredProductIds = new List<int>();
-
-            if (hasFilters)
+            // Case 1: Only filters, no search - Direct database query
+            if (!hasSearch && hasFilters)
             {
                 var query = _dbContext.Products
-                        .AsNoTracking()
-                        .Where(p => p.Status == "Approved" || p.Status == "Sold");
-
-                if (search == null)
-                    query = query
-                        .Include(p => p.Seller)
-                        .Include(p => p.ProductImages)
-                        .Include(p => p.Favorites)
-                        .Include(p => p.Categories);
+                    .AsNoTracking()
+                    .Include(p => p.Seller)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Favorites)
+                    .Include(p => p.Categories)
+                    .Where(p => p.Status == "Approved" || p.Status == "Sold");
 
                 if (categoryId.HasValue)
                 {
@@ -79,87 +77,64 @@ namespace ChoSV.Services
                     query = query.Where(p => p.Price <= maxPrice.Value);
                 }
 
-                if (search != null)
-                {
-                    filteredProductIds = await query.Select(p => p.ProductId).ToListAsync();
-                    if (filteredProductIds.Count == 0)
-                    {
-                        return new PagedResult<ProductListItemDTO>
-                        {
-                            Items = new List<ProductListItemDTO>(),
-                            TotalCount = 0,
-                            Page = page,
-                            PageSize = pageSize
-                        };
-                    }
-                }
-                else
-                {
-                    var totalCount = await query.CountAsync();
+                query = query.OrderByDescending(p => p.CreatedDate);
 
-                    if (totalCount == 0)
-                    {
-                        return new PagedResult<ProductListItemDTO>
-                        {
-                            Items = new List<ProductListItemDTO>(),
-                            TotalCount = 0,
-                            Page = page,
-                            PageSize = pageSize
-                        };
-                    }
-                    var products = await query
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToListAsync();
+                var totalCount = await query.CountAsync();
 
-                    var productDTOs = products.Select(p => p.ToProductListItemDTO()).ToList();
+                var products = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
 
-                    return new PagedResult<ProductListItemDTO>
-                    {
-                        Items = productDTOs,
-                        TotalCount = totalCount,
-                        Page = page,
-                        PageSize = pageSize
-                    };
-                }
-            }
-
-            var aiResponse = await CallAISearchServiceAsync(search, filteredProductIds, page, pageSize);
-            if (aiResponse?.Results?.Any() == true)
-            {
-                // Get products in the order returned by AI service
-                var orderedProducts = new List<Product>();
-                foreach (var productId in aiResponse.Results)
-                {
-                    var product = await _dbContext.Products
-                        .AsNoTracking()
-                        .Include(p => p.Seller)
-                        .Include(p => p.ProductImages)
-                        .Include(p => p.Favorites)
-                        .Include(p => p.Categories)
-                        .FirstOrDefaultAsync(p => p.ProductId == productId);
-
-                    if (product != null)
-                    {
-                        orderedProducts.Add(product);
-                    }
-                }
-
-                var aiProductDTOs = orderedProducts.Select(p => p.ToProductListItemDTO(null)).ToList();
+                var productDTOs = products.Select(p => p.ToProductListItemDTO(userId)).ToList(); // ✅ Pass userId
 
                 return new PagedResult<ProductListItemDTO>
                 {
-                    Items = aiProductDTOs,
-                    TotalCount = aiProductDTOs.Count,
+                    Items = productDTOs,
+                    TotalCount = totalCount,
                     Page = page,
                     PageSize = pageSize
                 };
             }
 
+            // Case 2: Has search (with or without filters) - Use AI service
+            var aiResponse = await CallAISearchServiceAsync(search!, categoryId, minPrice, maxPrice, page, pageSize);
+
+            if (aiResponse?.ProductIds == null || !aiResponse.ProductIds.Any())
+            {
+                return new PagedResult<ProductListItemDTO>
+                {
+                    Items = new List<ProductListItemDTO>(),
+                    TotalCount = 0,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
+
+            // Fetch products in the order returned by AI service
+            var orderedProducts = new List<Product>();
+            foreach (var productId in aiResponse.ProductIds)
+            {
+                var product = await _dbContext.Products
+                    .AsNoTracking()
+                    .Include(p => p.Seller)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Favorites)
+                    .Include(p => p.Categories)
+                    .FirstOrDefaultAsync(p => p.ProductId == productId);
+
+                if (product != null)
+                {
+                    orderedProducts.Add(product);
+                }
+            }
+
+            var aiProductDTOs = orderedProducts.Select(p => p.ToProductListItemDTO(userId)).ToList(); // ✅ Pass userId
+
             return new PagedResult<ProductListItemDTO>
             {
-                Items = new List<ProductListItemDTO>(),
-                TotalCount = 0,
+                Items = aiProductDTOs,
+                TotalCount = aiResponse.TotalCount,
                 Page = page,
                 PageSize = pageSize
             };
@@ -296,30 +271,8 @@ namespace ChoSV.Services
                 await _dbContext.SaveChangesAsync();
             }
 
-            try
-            {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
-
-                // Encode dữ liệu tiếng Việt để tránh lỗi URL
-                var encodedTitle = Uri.EscapeDataString(product.ProductName);
-                var selectedCategoryId = createProductPostDTO.CategoryIds.First();
-                var selectedCategory = categories.FirstOrDefault(c => c.CategoryId == selectedCategoryId);
-                var encodedCategory = Uri.EscapeDataString(selectedCategory?.Name ?? "Khác");
-
-                var aiUrl = $"{_aiSettings.BaseUrl}/insert?id={product.ProductId}&title={encodedTitle}&category={encodedCategory}";
-
-                var response = await _httpClient.PostAsync(aiUrl, null);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"⚠️ AI sync failed: {(int)response.StatusCode} {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error calling AI Service: {ex.Message}");
-            }
+            // ✅ Call AI service to update embeddings
+            await UpdateProductEmbeddingAsync(product.ProductId, product.ProductName, product.ProductDescription, createProductPostDTO.CategoryIds, categories);
         }
 
         public async Task UpdateProductPostAsync(string userId, int productId, CreateProductPostDTO createProductPostDTO)
@@ -388,31 +341,40 @@ namespace ChoSV.Services
 
             await _dbContext.SaveChangesAsync();
 
-            try
+            // ✅ Call AI service to update embeddings
+            await UpdateProductEmbeddingAsync(productId, product.ProductName, product.ProductDescription, createProductPostDTO.CategoryIds, categories);
+        }
+
+        private async Task UpdateProductEmbeddingAsync(int productId, string productName, string? productDescription, List<int> categoryIds, List<Category> allCategories)
+        {
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
+
+            // Get the childest (leaf) category from the provided category IDs
+            var selectedCategoryId = categoryIds.First();
+            var childestCategory = allCategories.FirstOrDefault(c => c.CategoryId == selectedCategoryId);
+            var childestCategoryName = childestCategory?.Name ?? "Khác";
+
+            // Build the request body
+            var requestBody = new
             {
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
+                productName = productName,
+                childestCategoryName = childestCategoryName,
+                description = productDescription ?? string.Empty
+            };
 
-                // Encode dữ liệu tiếng Việt để tránh lỗi URL
-                var encodedTitle = Uri.EscapeDataString(product.ProductName);
-                var selectedCategoryId = createProductPostDTO.CategoryIds.First();
-                var selectedCategory = categories.FirstOrDefault(c => c.CategoryId == selectedCategoryId);
-                var encodedCategory = Uri.EscapeDataString(selectedCategory?.Name ?? "Khác");
+            var jsonContent = JsonSerializer.Serialize(requestBody);
+            var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
-                var aiUrl = $"{_aiSettings.BaseUrl}/update?id={product.ProductId}&title={encodedTitle}&category={encodedCategory}";
+            var aiUrl = $"{_aiSettings.BaseUrl}/update-embedding/{productId}";
 
-                var response = await _httpClient.PutAsync(aiUrl, null);
+            var response = await _httpClient.PutAsync(aiUrl, httpContent);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"⚠️ AI sync failed: {(int)response.StatusCode} {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
+            if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"⚠️ Error calling AI Service: {ex.Message}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"⚠️ AI embedding sync failed for Product {productId}: {(int)response.StatusCode}. Chi tiết: {errorContent}");
             }
-
         }
 
         public async Task DeleteProductPostAsync(string userId, int productId)
@@ -551,37 +513,47 @@ namespace ChoSV.Services
             await _notificationService.SendProductNotificationAsync(userId, productName);
         }
 
-        private async Task<AISearchResponseDTO?> CallAISearchServiceAsync(string search, List<int>? productIds, int page, int pageSize)
+        private async Task<AISearchResponseDTO?> CallAISearchServiceAsync(string search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize)
         {
             try
             {
-                // Set the API key header
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
 
-                // Build the URL
-                var productIdsString = string.Join(",", productIds ?? new List<int>());
+                var urlBuilder = new System.Text.StringBuilder();
+                urlBuilder.Append($"{_aiSettings.BaseUrl}/search?q={Uri.EscapeDataString(search)}");
+                urlBuilder.Append($"&page={page}&page_size={pageSize}");
 
-                var url = $"{_aiSettings.BaseUrl}/search?q={Uri.EscapeDataString(search)}&page={page}&page_size={pageSize}&product_ids={productIdsString}";
+                if (categoryId.HasValue)
+                {
+                    urlBuilder.Append($"&category_ids={categoryId.Value}");
+                }
 
-                var response = await _httpClient.GetAsync(url);
+                if (minPrice.HasValue)
+                {
+                    urlBuilder.Append($"&min_price={minPrice.Value}");
+                }
+
+                if (maxPrice.HasValue)
+                {
+                    urlBuilder.Append($"&max_price={maxPrice.Value}");
+                }
+
+                var response = await _httpClient.GetAsync(urlBuilder.ToString());
 
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonResponse = await response.Content.ReadAsStringAsync();
-                    var aiResponse = JsonSerializer.Deserialize<AISearchResponseDTO>(jsonResponse, new JsonSerializerOptions
+                    return JsonSerializer.Deserialize<AISearchResponseDTO>(jsonResponse, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
-
-                    return aiResponse;
                 }
 
                 return null;
             }
             catch (Exception ex)
             {
-                // Log the exception (you should use proper logging)
                 Console.WriteLine($"Error calling AI Search Service: {ex.Message}");
                 return null;
             }

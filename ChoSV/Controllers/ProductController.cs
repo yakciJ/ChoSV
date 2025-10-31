@@ -25,7 +25,8 @@ namespace ChoSV.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchAndFilterProductAsync([FromQuery] string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var products = await _productService.SearchAndFilterProductsAsync(search, categoryId, minPrice, maxPrice, page, pageSize);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var products = await _productService.SearchAndFilterProductsAsync(search, categoryId, minPrice, maxPrice, page, pageSize, userId);
             return Ok(products);
         }
 

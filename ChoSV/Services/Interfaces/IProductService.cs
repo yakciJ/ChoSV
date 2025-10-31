@@ -5,7 +5,7 @@ namespace ChoSV.Services.Interfaces
 {
     public interface IProductService
     {
-        Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize);
+        Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize, string? userId = null);
         Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId);
         Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10);
         Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userId, string? currentUserId, int page = 1, int pageSize = 10);
