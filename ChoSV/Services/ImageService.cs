@@ -7,6 +7,7 @@ namespace ChoSV.Services
         private readonly IWebHostEnvironment _env;
         private readonly string _imageFolder;
         private readonly string _baseUrl;
+        private const long MaxFileSizeInBytes = 5 * 1024 * 1024;
 
         public ImageService(IWebHostEnvironment env, IConfiguration configuration)
         {
@@ -28,6 +29,10 @@ namespace ChoSV.Services
             if (!allowedExtensions.Contains(fileExtension))
             {
                 throw new ArgumentException("File ảnh không hợp lệ!");
+            }
+            if (file.Length > MaxFileSizeInBytes)
+            {
+                throw new ArgumentException($"Kích thước file vượt quá giới hạn cho phép ({MaxFileSizeInBytes / 1024 / 1024} MB)!");
             }
             var fileName = $"{Guid.NewGuid()}{fileExtension}";
             var filePath = Path.Combine(_imageFolder, fileName);

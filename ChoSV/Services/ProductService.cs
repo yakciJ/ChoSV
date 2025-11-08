@@ -242,6 +242,16 @@ namespace ChoSV.Services
                 .Where(c => allCategoryIds.Contains(c.CategoryId))
                 .ToListAsync();
 
+            if (createProductPostDTO.ImagesUrl == null || !createProductPostDTO.ImagesUrl.Any())
+            {
+                throw new ArgumentException("Vui lòng thêm ít nhất một hình ảnh!");
+            }
+
+            if (createProductPostDTO.ImagesUrl.Count > 6) // Adjust max limit as needed
+            {
+                throw new ArgumentException($"Số lượng hình ảnh không được vượt quá 6. Bạn đã tải lên {createProductPostDTO.ImagesUrl.Count} hình ảnh.");
+            }
+
             var product = new Product
             {
                 ProductName = createProductPostDTO.ProductName,
