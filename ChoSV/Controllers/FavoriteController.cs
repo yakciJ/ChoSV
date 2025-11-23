@@ -43,7 +43,7 @@ namespace ChoSV.Controllers
             return Ok(new { message = "Thêm sản phẩm yêu thích thành công!" });
         }
 
-        [HttpDelete]
+        [HttpDelete("{productId}")]
         public async Task<IActionResult> DeleteFavoriteAsync(int productId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

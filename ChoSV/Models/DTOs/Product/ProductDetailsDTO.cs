@@ -6,6 +6,8 @@
         public required string ProductName { get; set; }
         public required string SellerId { get; set; }
         public required string SellerName { get; set; }
+        public string? SellerAddress { get; set; }
+        public string? SellerPhone { get; set; }
         public required string ProductDescription { get; set; }
         public required decimal Price { get; set; }
         public required string Status { get; set; }
@@ -19,5 +21,10 @@
         public List<string> ProductImages { get; set; } = new List<string>();
         public int FavoriteCount { get; set; }
         public bool IsFavorite { get; set; }
+
+        public int? ParentCategoryId { get; set; }
+        public string? ParentCategoryName { get; set; }
+        public int? ChildCategoryId { get; set; }
+        public string? ChildCategoryName { get; set; }
     }
 }

@@ -8,6 +8,9 @@ namespace ChoSV.Models.Mappers
     {
         public static ProductDetailsDTO ToProductDetailsDTO(this Product product, string? userId = null)
         {
+            var parentCategory = product.Categories?.FirstOrDefault(c => c.ParentCategoryId == null);
+            var childCategory = product.Categories?.FirstOrDefault(c => c.ParentCategoryId != null);
+
             return new ProductDetailsDTO
             {
                 ProductId = product.ProductId,
@@ -23,6 +26,8 @@ namespace ChoSV.Models.Mappers
                 SellerFullName = product.Seller?.FullName,
                 SellerAvatarImage = product.Seller?.AvatarImage,
                 SellerEmail = product.Seller?.Email,
+                SellerAddress = product.Seller?.Address,
+                SellerPhone = product.Seller?.PhoneNumber,
                 SellerJoinedDate = product.Seller?.CreatedAt ?? DateTime.MinValue,
 
                 // Product images
@@ -30,7 +35,13 @@ namespace ChoSV.Models.Mappers
 
                 // Favorite count
                 FavoriteCount = product.Favorites?.Count ?? 0,
-                IsFavorite = !string.IsNullOrEmpty(userId) && (product.Favorites?.Any(f => f.UserId == userId) ?? false)
+                IsFavorite = !string.IsNullOrEmpty(userId) && (product.Favorites?.Any(f => f.UserId == userId) ?? false),
+
+                // Category information
+                ParentCategoryName = parentCategory?.Name,
+                ChildCategoryName = childCategory?.Name,
+                ParentCategoryId = parentCategory?.CategoryId,
+                ChildCategoryId = childCategory?.CategoryId
             };
         }
 
@@ -48,7 +59,6 @@ namespace ChoSV.Models.Mappers
                 IsFavorited = !string.IsNullOrEmpty(userId) && product.Favorites.Any(f => f.UserId == userId),
                 FavoriteCount = product.Favorites?.Count ?? 0,
                 Categories = product.Categories?.Select(c => c.ToCategoryDTOFromCategory()).ToList() ?? new List<CategoryDTO>()
-
             };
         }
 

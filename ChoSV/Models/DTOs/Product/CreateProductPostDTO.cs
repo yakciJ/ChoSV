@@ -20,6 +20,6 @@ namespace ChoSV.Models.DTOs.Product
         [Required]
         [MinLength(1, ErrorMessage = "At least one image is required")]
         [MaxLength(6, ErrorMessage = "Maximum 6 images allowed")]
-        public List<string> ImagesUrl { get; set; } = new List<string>();
+        public List<string> ImageUrls { get; set; } = new List<string>();
     }
 }

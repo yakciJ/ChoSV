@@ -180,6 +180,7 @@ namespace ChoSV
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<IUserViewHistory, UserViewHistoryService>();
+            builder.Services.AddScoped<IImageService, ImageService>();
 
             builder.Services.AddHttpClient();
             builder.Services.Configure<AISettings>(builder.Configuration.GetSection("AIService"));
@@ -195,6 +196,7 @@ namespace ChoSV
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseStaticFiles();
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 

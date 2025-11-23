@@ -38,7 +38,7 @@ namespace ChoSV.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            var productDTOs = favorites.Select(f => f.Product.ToProductListItemDTO()).ToList();
+            var productDTOs = favorites.Select(f => f.Product.ToProductListItemDTO(userId)).ToList();
 
             return new PagedResult<ProductListItemDTO>
             {
@@ -64,18 +64,20 @@ namespace ChoSV.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.ProductId == productId && f.UserId == userId);
 
-            if (existingFavorite != null)
+            try
+            {
+                var favorite = new Favorite
+                {
+                    UserId = userId,
+                    ProductId = productId
+                };
+                _dbContext.Favorites.Add(favorite);
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is Npgsql.PostgresException pgEx && pgEx.SqlState == "23505")
             {
                 throw new ArgumentException("Sản phẩm đã được yêu thích!");
             }
-
-            var favorite = new Favorite
-            {
-                UserId = userId,
-                ProductId = productId
-            };
-            _dbContext.Favorites.Add(favorite);
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteFavoriteAsync(int productId, string userId)

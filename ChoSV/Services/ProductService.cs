@@ -147,6 +147,7 @@ namespace ChoSV.Services
                 .Include(p => p.Seller)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Favorites)
+                .Include(p => p.Categories)
                 .FirstOrDefaultAsync(p => p.ProductId == productId);
             if (product == null)
             {
@@ -242,14 +243,14 @@ namespace ChoSV.Services
                 .Where(c => allCategoryIds.Contains(c.CategoryId))
                 .ToListAsync();
 
-            if (createProductPostDTO.ImagesUrl == null || !createProductPostDTO.ImagesUrl.Any())
+            if (createProductPostDTO.ImageUrls == null || !createProductPostDTO.ImageUrls.Any())
             {
                 throw new ArgumentException("Vui lòng thêm ít nhất một hình ảnh!");
             }
 
-            if (createProductPostDTO.ImagesUrl.Count > 6) // Adjust max limit as needed
+            if (createProductPostDTO.ImageUrls.Count > 6) // Adjust max limit as needed
             {
-                throw new ArgumentException($"Số lượng hình ảnh không được vượt quá 6. Bạn đã tải lên {createProductPostDTO.ImagesUrl.Count} hình ảnh.");
+                throw new ArgumentException($"Số lượng hình ảnh không được vượt quá 6. Bạn đã tải lên {createProductPostDTO.ImageUrls.Count} hình ảnh.");
             }
 
             var product = new Product
@@ -264,10 +265,10 @@ namespace ChoSV.Services
             await _dbContext.Products.AddAsync(product);
             await _dbContext.SaveChangesAsync();
 
-            if (createProductPostDTO.ImagesUrl?.Any() == true)
+            if (createProductPostDTO.ImageUrls?.Any() == true)
             {
                 var productImages = new List<ProductImage>();
-                foreach (var imageUrl in createProductPostDTO.ImagesUrl)
+                foreach (var imageUrl in createProductPostDTO.ImageUrls)
                 {
                     var productImage = new ProductImage
                     {
@@ -318,7 +319,7 @@ namespace ChoSV.Services
             var existingImageUrls = product.ProductImages.Select(pi => pi.ImageUrl).ToList();
 
             // Compare with incoming URLs from DTO
-            var incomingImageUrls = createProductPostDTO.ImagesUrl ?? new List<string>();
+            var incomingImageUrls = createProductPostDTO.ImageUrls ?? new List<string>();
 
             // Find URLs to add and remove
             var urlsToAdd = incomingImageUrls.Except(existingImageUrls).ToList();
