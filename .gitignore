@@ -362,3 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /ChoSV/appsettings.Development.json
+/ChoSV/wwwroot/images
