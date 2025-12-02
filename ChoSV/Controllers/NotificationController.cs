@@ -40,6 +40,33 @@ namespace ChoSV.Controllers
             return Ok(await _notificationService.GetUnreadNotificationCountAsync(userId));
         }
 
+        [HttpPut("{notificationId}/read")]
+        [Authorize(Policy = "UserPolicy")]
+        public async Task<IActionResult> MarkNotificationAsReadAsync(int notificationId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            await _notificationService.MarkAsReadAsync(userId, notificationId);
+            return Ok(new { message = "Đã đánh dấu thông báo là đã đọc!" });
+        }
+
+        [HttpDelete("{notificationId}")]
+        [Authorize(Policy = "UserPolicy")]
+        public async Task<IActionResult> DeleteNotificationAsync(int notificationId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID not found in token");
+            }
+            // Assuming there's a method to delete notification in the service
+            await _notificationService.DeleteNotificationAsync(userId, notificationId);
+            return Ok(new { message = "Đã xóa thông báo!" });
+        }
+
         [HttpPost]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> SendNotificationToUserAsync(SendNotificationDTO sendNotificationDTO)
@@ -55,5 +82,12 @@ namespace ChoSV.Controllers
             await _notificationService.SendNotificationToAllUserAsync(message);
             return Ok(new { message = "Gửi thông báo thành công!" });
         }
+
+        [HttpPut("admin/{notificationId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> UpdateNotificationAsync(int notificationId, string message)
+        {
+            await _notificationService.UpdateNotificationAsync(notificationId, message);
+            return Ok(new { message = "Cập nhật thông báo thành công!" });
+        }
     }
-}

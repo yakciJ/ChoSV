@@ -82,5 +82,16 @@ namespace ChoSV.Services
             report.Status = changeReportStatusDTO.Status;
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task DeleteReportAsync(string reportId)
+        {
+            var report = await _dbContext.Reports.FindAsync(reportId);
+            if (report == null)
+            {
+                throw new ArgumentException("Báo cáo không tồn tại!");
+            }
+            _dbContext.Reports.Remove(report);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

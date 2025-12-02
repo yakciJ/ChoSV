@@ -34,6 +34,8 @@ namespace ChoSV.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
+                //SameSite = SameSiteMode.None,
+                //Path = "/",
                 SameSite = SameSiteMode.Strict,
                 Path = "/api/User/refreshToken",
                 Expires = DateTime.UtcNow.AddDays(refreshTokenExpirationDays)
@@ -137,7 +139,7 @@ namespace ChoSV.Controllers
         }
 
         [HttpGet("admin/users")]
-        //[Authorize(Policy = "AdminPolicy")]
+        [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> GetAllUsersAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var result = await _userService.GetAllUsersByPageAsync(page, pageSize);

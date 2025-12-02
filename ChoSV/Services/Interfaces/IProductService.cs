@@ -14,6 +14,7 @@ namespace ChoSV.Services.Interfaces
         Task DeleteProductPostAsync(string userId, int productId);
 
         Task<PagedResult<ProductDetailListDTO>> AdminGetAllProductAsync(int page = 1, int pageSize = 10, string? status = null);
+        Task<ProductDetailsDTO> AdminGetProductAsync(int productId);
         Task AdminUpdateProductStatusAsync(int productId, string status);
         Task AdminDeleteProductPostAsync(int productId);
     }

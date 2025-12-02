@@ -40,5 +40,13 @@ namespace ChoSV.Controllers
             await _reportService.ChangeReportStatusAsync(changeReportStatusDTO);
             return Ok(new { message = "Change report status successfully" });
         }
+
+        [HttpDelete("{reportId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> DeleteReportAsync(string reportId)
+        {
+            await _reportService.DeleteReportAsync(reportId);
+            return Ok(new { message = "Delete report successfully" });
+        }
     }
 }

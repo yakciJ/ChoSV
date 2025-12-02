@@ -465,6 +465,22 @@ namespace ChoSV.Services
             };
         }
 
+        public async Task<ProductDetailsDTO> AdminGetProductAsync(int productId)
+        {
+            var product = await _dbContext.Products
+                .AsNoTracking()
+                .Include(p => p.Seller)
+                .Include(p => p.ProductImages)
+                .Include(p => p.Favorites)
+                .Include(p => p.Categories)
+                .FirstOrDefaultAsync(p => p.ProductId == productId);
+            if (product == null)
+            {
+                throw new ArgumentException("Không tìm thấy sản phẩm!");
+            }
+            return product.ToProductDetailsDTO(null);
+        }
+
         public async Task AdminUpdateProductStatusAsync(int productId, string status)
         {
             var validStatuses = new[] { "Pending", "Approved", "Rejected", "Sold", "Archived", "Deleted" };

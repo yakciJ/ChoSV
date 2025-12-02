@@ -134,6 +134,27 @@ namespace ChoSV.Services
             return totalCount;
         }
 
+        public async Task DeleteNotificationAsync(string userId, int notificationId)
+        {
+            //var user = await _dbContext.Users
+            //    .AsNoTracking()
+            //    .FirstOrDefaultAsync(u => u.Id == userId);
+            //if (user == null)
+            //{
+            //    throw new ArgumentException("Người dùng không tồn tại!");
+            //}
+            var noti = await _dbContext.Notifications
+                .Where(n => n.UserId == userId
+                        && n.NotificationId == notificationId)
+                .FirstOrDefaultAsync();
+            if (noti == null)
+            {
+                throw new ArgumentException("Thông báo không tồn tại!");
+            }
+            _dbContext.Notifications.Remove(noti);
+            await _dbContext.SaveChangesAsync();
+        }
+
 
         public async Task SendProductNotificationAsync(Product product)
         {
@@ -178,5 +199,30 @@ namespace ChoSV.Services
             };
             await SendNotificationAsync(noti);
         }
+
+        public async Task UpdateNotificationAsync(int notificationId, string newMessage)
+        {
+            var noti = await _dbContext.Notifications
+                .Where(n => n.NotificationId == notificationId)
+                .FirstOrDefaultAsync();
+            if (noti == null)
+            {
+                throw new ArgumentException("Thông báo không tồn tại!");
+            }
+            noti.Message = newMessage;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        //public async Task SendMessageNotificationAsync(string receiverId, string senderName)
+        //{
+        //    var message = $"Bạn có một tin nhắn mới từ {senderName}";
+        //    var noti = new SendNotificationDTO
+        //    {
+        //        UserId = receiverId,
+        //        Message = message,
+        //    };
+        //    await SendNotificationAsync(noti);
+        //}
+
     }
 }

@@ -110,6 +110,14 @@ namespace ChoSV.Controllers
             return Ok(pagedResult);
         }
 
+        [HttpGet("admin/{productId}")]
+        [Authorize(Policy = "AdminPolicy")]
+        public async Task<IActionResult> AdminGetProductAsync(int productId)
+        {
+            var product = await _productService.AdminGetProductAsync(productId);
+            return Ok(product);
+        }
+
         [HttpPut("{productId}/status")]
         [Authorize(Policy = "AdminPolicy")]
         public async Task<IActionResult> AdminUpdateProductStatusAsync(int productId, [FromBody] string status)
