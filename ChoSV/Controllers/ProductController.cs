@@ -23,10 +23,26 @@ namespace ChoSV.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> SearchAndFilterProductAsync([FromQuery] string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> SearchAndFilterProductAsync([FromQuery] string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? sortBy = "relevance")
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var products = await _productService.SearchAndFilterProductsAsync(search, categoryId, minPrice, maxPrice, page, pageSize, userId);
+            return Ok(products);
+        }
+
+        [HttpGet("newest")]
+        public async Task<IActionResult> GetNewestProductAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var products = await _productService.GetNewestProductsAsync(page, pageSize, userId);
+            return Ok(products);
+        }
+
+        [HttpGet("popular")]
+        public async Task<IActionResult> GetPopularProductsAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int daysBack = 30)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var products = await _productService.GetPopularProductsAsync(page, pageSize, userId, daysBack);
             return Ok(products);
         }
 

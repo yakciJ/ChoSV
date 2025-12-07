@@ -38,7 +38,7 @@ namespace ChoSV.Services
 
             if (createUser.Succeeded)
             {
-                var userRole = await _userManager.AddToRoleAsync(user, "Admin");
+                var userRole = await _userManager.AddToRoleAsync(user, "User");
                 if (userRole.Succeeded)
                 {
                     var emailConfirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);

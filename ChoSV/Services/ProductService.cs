@@ -30,7 +30,7 @@ namespace ChoSV.Services
             _aiSettings = aiSettings.Value; // ✅ Use injected settings
         }
 
-        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10, string? userId = null)
+        public async Task<PagedResult<ProductListItemDTO>> SearchAndFilterProductsAsync(string? search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10, string? userId = null, string? sortBy = "relevance")
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
@@ -49,6 +49,12 @@ namespace ChoSV.Services
             if (!hasSearch && !hasFilters)
             {
                 throw new ArgumentException("Vui lòng nhập từ khóa tìm kiếm hoặc chọn bộ lọc!");
+            }
+
+            var validSortOptions = new[] { "relevance", "price_high", "price_low", "newest" };
+            if (!string.IsNullOrEmpty(sortBy) && !validSortOptions.Contains(sortBy.ToLower()))
+            {
+                throw new ArgumentException("Sắp xếp không hợp lệ!");
             }
 
             // Case 1: Only filters, no search - Direct database query
@@ -77,7 +83,7 @@ namespace ChoSV.Services
                     query = query.Where(p => p.Price <= maxPrice.Value);
                 }
 
-                query = query.OrderByDescending(p => p.CreatedDate);
+                query = ApplySorting(query, sortBy?.ToLower() ?? "newest");
 
                 var totalCount = await query.CountAsync();
 
@@ -86,7 +92,7 @@ namespace ChoSV.Services
                     .Take(pageSize)
                     .ToListAsync();
 
-                var productDTOs = products.Select(p => p.ToProductListItemDTO(userId)).ToList(); // ✅ Pass userId
+                var productDTOs = products.Select(p => p.ToProductListItemDTO(userId)).ToList();
 
                 return new PagedResult<ProductListItemDTO>
                 {
@@ -129,12 +135,81 @@ namespace ChoSV.Services
                 }
             }
 
-            var aiProductDTOs = orderedProducts.Select(p => p.ToProductListItemDTO(userId)).ToList(); // ✅ Pass userId
+            if (!string.IsNullOrEmpty(sortBy) && sortBy.ToLower() != "relevance")
+            {
+                orderedProducts = SortProductList(orderedProducts, sortBy.ToLower());
+            }
+
+            var aiProductDTOs = orderedProducts.Select(p => p.ToProductListItemDTO(userId)).ToList();
 
             return new PagedResult<ProductListItemDTO>
             {
                 Items = aiProductDTOs,
                 TotalCount = aiResponse.TotalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<PagedResult<ProductListItemDTO>> GetNewestProductsAsync(int page = 1, int pageSize = 10, string? userId = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _dbContext.Products
+                .AsNoTracking()
+                .Include(p => p.Seller)
+                .Include(p => p.ProductImages)
+                .Include(p => p.Favorites)
+                .Include(p => p.Categories)
+                .Where(p => p.Status == "Approved")
+                .OrderByDescending(p => p.CreatedDate);
+
+            var totalCount = await query.CountAsync();
+
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var productDTOs = products.Select(p => p.ToProductListItemDTO(userId)).ToList();
+
+            return new PagedResult<ProductListItemDTO>
+            {
+                Items = productDTOs,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        public async Task<PagedResult<ProductListItemDTO>> GetPopularProductsAsync(int page = 1, int pageSize = 10, string? userId = null, int daysBack = 30)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var cutoffDate = DateTime.UtcNow.AddDays(-daysBack);
+
+            var query = _dbContext.Products
+                .AsNoTracking()
+                .Include(p => p.Seller)
+                .Include(p => p.ProductImages)
+                .Include(p => p.Favorites)
+                .Include(p => p.Categories)
+                .Where(p => p.Status == "Approved" && p.CreatedDate >= cutoffDate)
+                .OrderByDescending(p => p.Favorites.Count)
+                .ThenByDescending(p => p.CreatedDate); 
+
+            var totalCount = await query.CountAsync();
+            var products = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var productDTOs = products.Select(p => p.ToProductListItemDTO(userId)).ToList();
+
+            return new PagedResult<ProductListItemDTO>
+            {
+                Items = productDTOs,
+                TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize
             };
@@ -584,6 +659,28 @@ namespace ChoSV.Services
                 Console.WriteLine($"Error calling AI Search Service: {ex.Message}");
                 return null;
             }
+        }
+
+        private IQueryable<Product> ApplySorting(IQueryable<Product> query, string sortBy)
+        {
+            return sortBy switch
+            {
+                "price_high" => query.OrderByDescending(p => p.Price),
+                "price_low" => query.OrderBy(p => p.Price),
+                "newest" => query.OrderByDescending(p => p.CreatedDate),
+                _ => query.OrderByDescending(p => p.CreatedDate)
+            };
+        }
+
+        private List<Product> SortProductList(List<Product> products, string sortBy)
+        {
+            return sortBy switch
+            {
+                "price_high" => products.OrderByDescending(p => p.Price).ToList(),
+                "price_low" => products.OrderBy(p => p.Price).ToList(),
+                "newest" => products.OrderByDescending(p => p.CreatedDate).ToList(),
+                _ => products
+            };
         }
     }
 }
