@@ -54,8 +54,9 @@ namespace ChoSV.Models.Mappers
                 Price = product.Price,
                 Status = product.Status,
                 CreatedDate = product.CreatedDate,
-                SellerName = product.Seller?.UserName ?? "Unknown",
                 FirstImageUrl = product.ProductImages?.FirstOrDefault()?.ImageUrl,
+                SellerName = product.Seller?.UserName ?? "Unknown",
+                SellerAvatar = product.Seller?.AvatarImage ?? "",
                 IsFavorited = !string.IsNullOrEmpty(userId) && product.Favorites.Any(f => f.UserId == userId),
                 FavoriteCount = product.Favorites?.Count ?? 0,
                 Categories = product.Categories?.Select(c => c.ToCategoryDTOFromCategory()).ToList() ?? new List<CategoryDTO>()

@@ -21,7 +21,7 @@ namespace ChoSV.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<UserViewHistory> UserViewHistories { get; set; } // ✅ Added missing DbSet
+        public DbSet<UserViewHistory> UserViewHistories { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,25 +39,24 @@ namespace ChoSV.Data
             modelBuilder.Entity<Favorite>()
                 .HasKey(f => new { f.UserId, f.ProductId });
 
-            // ✅ ADD THESE - Fix cascade delete conflicts for Favorites
             modelBuilder.Entity<Favorite>()
                 .HasOne(f => f.User)
                 .WithMany(u => u.Favorites)
                 .HasForeignKey(f => f.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Favorite>()
                 .HasOne(f => f.Product)
                 .WithMany(p => p.Favorites)
                 .HasForeignKey(f => f.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ✅ ADD THIS - Fix Product-User relationship
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Seller)
                 .WithMany(u => u.Products)
                 .HasForeignKey(p => p.SellerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure Product-Category many-to-many relationship
             modelBuilder.Entity<Product>()
@@ -77,25 +76,25 @@ namespace ChoSV.Data
                 .HasOne(m => m.Sender)
                 .WithMany(u => u.SentMessages)
                 .HasForeignKey(m => m.SenderId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Message>()
                 .HasOne(m => m.Receiver)
                 .WithMany(u => u.ReceivedMessages)
                 .HasForeignKey(m => m.ReceiverId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<UserWallPost>()
                 .HasOne(w => w.Owner)
                 .WithMany(u => u.WallPosts)
                 .HasForeignKey(w => w.UserWallOwnerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<UserWallPost>()
                 .HasOne(w => w.Poster)
                 .WithMany(u => u.PostsMade)
                 .HasForeignKey(w => w.PosterId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Configure Notification relationships
             modelBuilder.Entity<Notification>()
@@ -108,7 +107,19 @@ namespace ChoSV.Data
                 .HasOne(n => n.FromUser)
                 .WithMany()
                 .HasForeignKey(n => n.FromUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.UserWallPost)
+                .WithMany()
+                .HasForeignKey(n => n.UserWallPostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Product)
+                .WithMany()
+                .HasForeignKey(n => n.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure decimal precision for Price
             modelBuilder.Entity<Product>()
