@@ -48,6 +48,13 @@ namespace ChoSV.Controllers
             return Ok(res);
         }
 
+        [HttpPost("resendConfirmEmail")]
+        public async Task<IActionResult> SendConfirmEmail(string email)
+        {
+            await _userService.SendConfirmEmailAsync(email);
+            return Ok(new { message = "Gửi lại email xác thực thành công!" });
+        }
+
         [HttpPost("confirmEmail")]
         public async Task<IActionResult> ConfirmEmailAsync(string email, string token)
         {

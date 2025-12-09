@@ -50,6 +50,17 @@ namespace ChoSV.Services
             else throw new ArgumentException(createUser.Errors.First().Code);
         }
 
+        public async Task SendConfirmEmailAsync(string email)
+        {
+            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null || user.EmailConfirmed == true)
+            {
+                return;
+            }
+            var emailConfirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            await _emailService.SendConfirmEmailAsync(user.Email, user.UserName, emailConfirmToken);
+        }
+
         public async Task<LoginResponseDTO> LoginAsync(LoginDTO loginDTO)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == loginDTO.UserName);
@@ -57,15 +68,16 @@ namespace ChoSV.Services
             {
                 throw new ArgumentException("Tài khoản hoặc mật khẩu không đúng!");
             }
-            //if (user.EmailConfirmed == false)
-            //{
-            //    throw new ArgumentException("Chưa xác thực Email, vui lòng xác thực Email để tiếp tục đăng nhập!");
-            //}
+            if (user.EmailConfirmed == false)
+            {
+                throw new ArgumentException("Chưa xác thực Email, vui lòng xác thực Email để tiếp tục đăng nhập!");
+            }
             if (user.IsBanned == true)
             {
                 throw new ArgumentException("Tài khoản của bạn đã bị chặn!");
             }
             var res = await _signInManager.CheckPasswordSignInAsync(user, loginDTO.Password, true);
+
             if (res.IsLockedOut == true)
             {
                 throw new ArgumentException("Tài khoản của bạn đã bị khóa vì nhập sai mật khẩu nhiều lần, hãy thử lại sau vài phút!");
