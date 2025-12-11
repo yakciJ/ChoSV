@@ -14,6 +14,7 @@ namespace ChoSV.Models.Mappers
                 PosterId = userWallPost.PosterId,
                 PosterAvatarImage = userWallPost.Poster?.AvatarImage,
                 PosterUserName = userWallPost.Poster?.UserName ?? string.Empty,
+                PosterFullName = userWallPost.Poster?.FullName ?? string.Empty,
                 CommentContent = userWallPost.CommentContent,
                 CreatedAt = userWallPost.CreatedAt
             };

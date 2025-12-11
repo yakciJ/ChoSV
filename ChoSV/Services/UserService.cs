@@ -32,6 +32,7 @@ namespace ChoSV.Services
                 UserName = registerDTO.UserName,
                 Email = registerDTO.Email,
                 CreatedAt = DateTime.UtcNow,
+                EmailConfirmed = true
             };
 
             var createUser = await _userManager.CreateAsync(user, registerDTO.Password);
@@ -41,8 +42,8 @@ namespace ChoSV.Services
                 var userRole = await _userManager.AddToRoleAsync(user, "User");
                 if (userRole.Succeeded)
                 {
-                    var emailConfirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    await _emailService.SendConfirmEmailAsync(registerDTO.Email, registerDTO.UserName, emailConfirmToken);
+                    //var emailConfirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    //await _emailService.SendConfirmEmailAsync(registerDTO.Email, registerDTO.UserName, emailConfirmToken);
                     return true;
                 }
                 else throw new ArgumentException("Thêm vai trò thất bại!");

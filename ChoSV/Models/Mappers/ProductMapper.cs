@@ -56,6 +56,7 @@ namespace ChoSV.Models.Mappers
                 CreatedDate = product.CreatedDate,
                 FirstImageUrl = product.ProductImages?.FirstOrDefault()?.ImageUrl,
                 SellerName = product.Seller?.UserName ?? "Unknown",
+                SellerFullName = product.Seller?.FullName ?? "",
                 SellerAvatar = product.Seller?.AvatarImage ?? "",
                 IsFavorited = !string.IsNullOrEmpty(userId) && product.Favorites.Any(f => f.UserId == userId),
                 FavoriteCount = product.Favorites?.Count ?? 0,

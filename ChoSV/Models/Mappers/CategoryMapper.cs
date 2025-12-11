@@ -11,6 +11,7 @@ namespace ChoSV.Models.Mappers
             {
                 Name = createCategoryDTO.Name,
                 Description = createCategoryDTO.Description,
+                ImageUrl = createCategoryDTO.ImageUrl,
                 ParentCategoryId = createCategoryDTO.ParentCategoryId,
             };
         }
@@ -21,7 +22,8 @@ namespace ChoSV.Models.Mappers
             {
                 CategoryId = category.CategoryId,
                 Name = category.Name,
-                Childs = new List<CategoryTreeDTO>() // Will be populated separately
+                ImageUrl = category.ImageUrl,
+                Childs = new List<CategoryTreeDTO>()
             };
         }
 
@@ -31,6 +33,7 @@ namespace ChoSV.Models.Mappers
             {
                 CategoryId = category.CategoryId,
                 CategoryName = category.Name,
+                ImageUrl = category.ImageUrl,
             };
         }
 
@@ -38,6 +41,7 @@ namespace ChoSV.Models.Mappers
         {
             category.Name = updateCategoryDTO.Name;
             category.Description = updateCategoryDTO.Description;
+            category.ImageUrl = updateCategoryDTO.ImageUrl;
             category.ParentCategoryId = updateCategoryDTO.ParentCategoryId;
         }
     }

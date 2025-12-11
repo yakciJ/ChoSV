@@ -40,11 +40,11 @@ namespace ChoSV.Services
 
             var products = await _dbContext.Products
                 .Where(p => p.Categories.Any(c => c.CategoryId == categoryId) &&
-                   (p.Status == "Approved" || p.Status == "Sold"))
+                   (p.Status == "Approved"))
                 .Include(p => p.Seller)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Favorites)
-                .OrderByDescending(p => p.CreatedDate) // Most recent first
+                .OrderByDescending(p => p.CreatedDate)
                 .Skip(skip)
                 .Take(pageSize)
                 .AsNoTracking()
@@ -64,6 +64,7 @@ namespace ChoSV.Services
             {
                 CategoryId = category.CategoryId,
                 Name = category.Name,
+                ImageUrl = category.ImageUrl,
                 Description = category.Description,
                 ProductCount = totalProductCount,
                 Products = pagedProducts
@@ -80,18 +81,15 @@ namespace ChoSV.Services
 
         public async Task<List<CategoryTreeDTO>> GetCategoryTreesAsync()
         {
-            // Get all categories with their relationships
             var allCategories = await _dbContext.Categories
                 .Include(c => c.ChildCategories)
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Find root categories (categories with no parent)
             var rootCategories = allCategories
                 .Where(c => c.ParentCategoryId == null)
                 .ToList();
 
-            // Build the tree structure
             var categoryTrees = new List<CategoryTreeDTO>();
 
             foreach (var rootCategory in rootCategories)

@@ -3,6 +3,7 @@
     public class CategoryDTO
     {
         public int CategoryId { get; set; }
+        public string? ImageUrl { get; set; }
         public required string CategoryName { get; set; }
     }
 }

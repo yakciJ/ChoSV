@@ -11,6 +11,7 @@ namespace ChoSV.Models.DTOs.Product
         public string? FirstImageUrl { get; set; }
         public DateTime CreatedDate { get; set; }
         public string SellerName { get; set; } = string.Empty;
+        public string SellerFullName { get; set; }
         public string SellerAvatar { get; set; } = string.Empty;
         public bool IsFavorited { get; set; }
         public int FavoriteCount { get; set; }
