@@ -34,6 +34,8 @@ namespace ChoSV.Services
                     .ThenInclude(p => p.ProductImages)
                 .Include(f => f.Product)
                     .ThenInclude(p => p.Categories)
+                .Include(f => f.Product)
+                    .ThenInclude(p => p.Seller)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

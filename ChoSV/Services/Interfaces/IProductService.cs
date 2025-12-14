@@ -9,10 +9,11 @@ namespace ChoSV.Services.Interfaces
         Task<PagedResult<ProductListItemDTO>> GetNewestProductsAsync(int page = 1, int pageSize = 10, string? userId = null);
         Task<PagedResult<ProductListItemDTO>> GetPopularProductsAsync(int page = 1, int pageSize = 10, string? userId = null, int daysBack = 30);
         Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId);
-        Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10);
+        Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10, string status = null!);
         Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userId, string? currentUserId, int page = 1, int pageSize = 10);
         Task CreateProductPostAsync(string userId, CreateProductPostDTO createProductPostDTO);
         Task UpdateProductPostAsync(string userId, int productId, CreateProductPostDTO updateProductPostDTO);
+        Task ChangeProductStatusAsync(int productId, string userId, string status);
         Task DeleteProductPostAsync(string userId, int productId);
 
         Task<PagedResult<ProductDetailListDTO>> AdminGetAllProductAsync(int page = 1, int pageSize = 10, string? status = null);
@@ -20,6 +21,8 @@ namespace ChoSV.Services.Interfaces
         Task AdminUpdateProductStatusAsync(int productId, string status);
         Task AdminDeleteProductPostAsync(int productId);
     }
+    // chua co user chinh status?
+
     // Các trạng thái của product:
     //  Pending: Chờ duyệt(khi người dùng vừa đăng).
     //  Approved: Đã duyệt(hiện công khai cho mọi người xem/mua).

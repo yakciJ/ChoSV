@@ -200,7 +200,7 @@ namespace ChoSV.Services
                 .Include(p => p.Categories)
                 .Where(p => p.Status == "Approved" && p.CreatedDate >= cutoffDate)
                 .OrderByDescending(p => p.Favorites.Count)
-                .ThenByDescending(p => p.CreatedDate); 
+                .ThenByDescending(p => p.CreatedDate);
 
             var totalCount = await query.CountAsync();
             var products = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -235,11 +235,18 @@ namespace ChoSV.Services
             return product.ToProductDetailsDTO(userId);
         }
 
-        public async Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10, string status = null!)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 100) pageSize = 100;
+
+            string[] validStatus = { "Pending", "Approved", "Rejected", "Sold" };
+
+            if (status != null && !validStatus.Contains(status))
+            {
+                throw new ArgumentException("Trạng thái không hợp lệ!");
+            }
 
             var query = _dbContext.Products
                 .AsNoTracking()
@@ -247,8 +254,14 @@ namespace ChoSV.Services
                 .Include(p => p.Seller)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Categories)
-                .Where(p => p.SellerId == userId)
-                .OrderByDescending(p => p.CreatedDate);
+                .Where(p => p.SellerId == userId);
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(p => p.Status == status);
+            }
+
+            query = query.OrderByDescending(p => p.CreatedDate);
 
             var totalCount = await query.CountAsync();
 
@@ -429,6 +442,30 @@ namespace ChoSV.Services
 
             // ✅ Call AI service to update embeddings
             await UpdateProductEmbeddingAsync(productId, product.ProductName, product.ProductDescription, createProductPostDTO.CategoryIds, categories);
+        }
+
+        public async Task ChangeProductStatusAsync(int productId, string userId, string status)
+        {
+            string[] validStatus = { "Approved", "Sold" };
+            var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+            if (product == null)
+            {
+                throw new ArgumentException("Sản phẩm không tồn tại!");
+            }
+            if (product.SellerId != userId)
+            {
+                throw new ArgumentException("Sản phẩm không tồn tại!");
+            }
+            if (!validStatus.Contains(product.Status))
+            {
+                throw new ArgumentException("Trạng thái không hợp lệ!");
+            }
+            if (!validStatus.Contains(status))
+            {
+                throw new ArgumentException("Trạng thái không hợp lệ!");
+            }
+            product.Status = status;
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task UpdateProductEmbeddingAsync(int productId, string productName, string? productDescription, List<int> categoryIds, List<Category> allCategories)
