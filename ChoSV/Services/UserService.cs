@@ -152,6 +152,16 @@ namespace ChoSV.Services
             return user.ToGetUserProfileDTO();
         }
 
+        public async Task<GetUserProfileDTO> GetCurrentUserProfileAsync(string userId)
+        {
+            var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
+            return user.ToGetUserProfileDTO();
+        }
+
         public async Task UpdateUserProfileAsync(string userId, UpdateUserDTO updateUserDTO)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => userId == u.Id);

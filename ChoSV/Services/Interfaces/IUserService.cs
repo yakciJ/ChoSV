@@ -11,6 +11,7 @@ namespace ChoSV.Services.Interfaces
         Task SendConfirmEmailAsync(string email);
         Task<string> GetAccessTokenAsync(string refreshToken);
         Task<GetUserProfileDTO> GetUserByUserNameAsync(string userName);
+        Task<GetUserProfileDTO> GetCurrentUserProfileAsync(string userId);
         Task UpdateUserProfileAsync(string userId, UpdateUserDTO updateUserDTO);
         Task DeleteUserAsync(string userId);
         Task ChangePasswordAsync(string userId, ChangePasswordDTO changePasswordDTO);

@@ -73,6 +73,17 @@ namespace ChoSV.Controllers
             return Ok(await _userService.GetAccessTokenAsync(refreshToken));
         }
 
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUserProfile()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Không thể xác định người dùng!");
+            }
+            return Ok(await _userService.GetCurrentUserProfileAsync(userId));
+        }
+
         [HttpGet("{userName}")]
         public async Task<IActionResult> GetUserByUserNameAsync(string userName)
         {
