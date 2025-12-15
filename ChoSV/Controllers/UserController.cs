@@ -34,9 +34,9 @@ namespace ChoSV.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                //SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.None,
                 //Path = "/",
-                SameSite = SameSiteMode.Strict,
+                //SameSite = SameSiteMode.Strict,
                 Path = "/api/User/refreshToken",
                 Expires = DateTime.UtcNow.AddDays(refreshTokenExpirationDays)
             };
