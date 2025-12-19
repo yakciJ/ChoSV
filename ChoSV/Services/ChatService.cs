@@ -122,15 +122,27 @@ namespace ChoSV.Services
                 throw new ArgumentException("Người dùng không tồn tại!");
             }
 
-            var recentMessages = await _dbContext.Messages
+            // First, get all messages for the user with both sender and receiver info
+            var userMessages = await _dbContext.Messages
                 .Include(m => m.Sender)
                 .Include(m => m.Receiver)
                 .Where(m => m.SenderId == userId || m.ReceiverId == userId)
-                .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
-                .Select(g => g.OrderByDescending(m => m.CreatedDate).First())
                 .OrderByDescending(m => m.CreatedDate)
-                .Select(m => m.ToMessageDTO(m.Sender!.UserName!))
                 .ToListAsync();
+
+            // Then group and get the most recent message per conversation in memory
+            var recentMessages = userMessages
+                .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
+                .Select(g =>
+                {
+                    var latestMessage = g.First(); // Already ordered by CreatedDate descending
+                    var otherUserId = latestMessage.SenderId == userId ? latestMessage.ReceiverId : latestMessage.SenderId;
+                    var otherUser = latestMessage.SenderId == userId ? latestMessage.Receiver! : latestMessage.Sender!;
+
+                    return latestMessage.ToRecentChatDTO(latestMessage.Sender!.UserName!, userId, otherUser);
+                })
+                .OrderByDescending(m => m.CreatedDate)
+                .ToList();
 
             return recentMessages;
         }

@@ -30,5 +30,23 @@ namespace ChoSV.Models.Mappers
                 IsRead = message.IsRead,
             };
         }
+
+        // New overload for recent chats with other user info
+        public static MessageDTO ToRecentChatDTO(this Message message, string senderUserName, string currentUserId, User otherUser)
+        {
+            return new MessageDTO
+            {
+                MessageId = message.MessageId,
+                SenderId = message.SenderId,
+                SenderUserName = senderUserName,
+                ReceiverId = message.ReceiverId,
+                Content = message.Content,
+                CreatedDate = message.CreatedDate,
+                IsRead = message.IsRead,
+                OtherUserId = otherUser.Id,
+                OtherUserFullName = otherUser.FullName,
+                OtherUserAvatar = otherUser.AvatarImage
+            };
+        }
     }
 }

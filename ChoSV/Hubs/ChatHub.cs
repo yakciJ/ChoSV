@@ -2,6 +2,7 @@
 using ChoSV.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 using System.Security.Claims;
 
 namespace ChoSV.Hubs
@@ -10,7 +11,7 @@ namespace ChoSV.Hubs
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
-        private static readonly Dictionary<string, string> ConnectedUsers = new();
+        private static readonly ConcurrentDictionary<string, string> ConnectedUsers = new();
 
         public ChatHub(IChatService chatService)
         {
@@ -22,7 +23,7 @@ namespace ChoSV.Hubs
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId != null)
             {
-                ConnectedUsers[userId] = Context.ConnectionId;
+                ConnectedUsers.AddOrUpdate(userId, Context.ConnectionId, (key, oldValue) => Context.ConnectionId);
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{userId}");
 
                 // Notify others that user is online
@@ -36,7 +37,7 @@ namespace ChoSV.Hubs
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId != null)
             {
-                ConnectedUsers.Remove(userId);
+                ConnectedUsers.TryRemove(userId, out _);
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"User_{userId}");
 
                 // Notify others that user is offline
@@ -109,7 +110,23 @@ namespace ChoSV.Hubs
 
         public async Task GetOnlineUsers()
         {
-            await Clients.Caller.SendAsync("OnlineUsers", ConnectedUsers.Keys.ToList());
+            try
+            {
+                // Add safety check and limit the response size
+                var userCount = ConnectedUsers.Count;
+                if (userCount > 10000) // Arbitrary safety limit
+                {
+                    await Clients.Caller.SendAsync("Error", "Too many connected users to retrieve");
+                    return;
+                }
+
+                var onlineUserIds = ConnectedUsers.Keys.Take(1000).ToList(); // Limit to first 1000 users
+                await Clients.Caller.SendAsync("OnlineUsers", onlineUserIds);
+            }
+            catch (Exception ex)
+            {
+                await Clients.Caller.SendAsync("Error", $"Failed to retrieve online users: {ex.Message}");
+            }
         }
 
         private static string GetChatRoomName(string userId1, string userId2)
