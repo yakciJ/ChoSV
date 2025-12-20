@@ -67,15 +67,15 @@ namespace ChoSV.Controllers
             return Ok(products);
         }
 
-        [HttpGet("user/{targetUserId}")]
-        public async Task<IActionResult> GetUserProductPostAsync(string targetUserId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        [HttpGet("user/{userName}")]
+        public async Task<IActionResult> GetUserProductPostAsync(string userName, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //if (string.IsNullOrEmpty(targetUserId))
             //{
             //    return Unauthorized("Không thể xác định người dùng!");
             //}
-            var productsList = await _productService.GetUserProductPostsAsync(targetUserId, currentUserId, page, pageSize);
+            var productsList = await _productService.GetUserProductPostsAsync(userName, currentUserId, page, pageSize);
             return Ok(productsList);
         }
 

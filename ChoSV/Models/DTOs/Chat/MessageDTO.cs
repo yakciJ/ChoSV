@@ -10,6 +10,7 @@
         public DateTime CreatedDate { get; set; }
         public bool IsRead { get; set; }
 
+        public string? OtherUserName { get; set; }
         public string? OtherUserFullName { get; set; }
         public string? OtherUserAvatar { get; set; }
         public string? OtherUserId { get; set; }

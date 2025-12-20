@@ -19,16 +19,23 @@ namespace ChoSV.Services
             _userManager = userManager;
         }
 
-        public async Task<PagedResult<UserWallPostListDTO>> GetUserWallPostById(string userId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<UserWallPostListDTO>> GetUserWallPostByUserName(string userName, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 100) pageSize = 100;
 
+            var user = await _dbcontext.Users.AsNoTracking().FirstOrDefaultAsync(x => x.UserName == userName);
+
+            if (user == null)
+            {
+                throw new ArgumentException("Nguời dùng không tồn tại");
+            }
+
             var query = _dbcontext.UserWallPosts
                 .AsNoTracking()
                 .Include(u => u.Poster)
-                .Where(u => u.UserWallOwnerId == userId)
+                .Where(u => u.UserWallOwnerId == user.Id)
                 .OrderByDescending(u => u.CreatedAt);
 
             var totalCount = await query.CountAsync();

@@ -16,10 +16,10 @@ namespace ChoSV.Controllers
             _userWallPostService = userWallPostService;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetUserWallPostById(string userId, int page = 1, int pageSize = 10)
+        [HttpGet("{userName}")]
+        public async Task<IActionResult> GetUserWallPostByUserName(string userName, int page = 1, int pageSize = 10)
         {
-            return Ok(await _userWallPostService.GetUserWallPostById(userId, page, pageSize));
+            return Ok(await _userWallPostService.GetUserWallPostByUserName(userName, page, pageSize));
         }
 
         [HttpPost]

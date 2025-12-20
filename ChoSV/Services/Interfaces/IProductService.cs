@@ -10,7 +10,7 @@ namespace ChoSV.Services.Interfaces
         Task<PagedResult<ProductListItemDTO>> GetPopularProductsAsync(int page = 1, int pageSize = 10, string? userId = null, int daysBack = 30);
         Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId);
         Task<PagedResult<ProductDetailListDTO>> GetCurrentUserProductAsync(string userId, int page = 1, int pageSize = 10, string status = null!);
-        Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userId, string? currentUserId, int page = 1, int pageSize = 10);
+        Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userName, string? currentUserId, int page = 1, int pageSize = 10);
         Task CreateProductPostAsync(string userId, CreateProductPostDTO createProductPostDTO);
         Task UpdateProductPostAsync(string userId, int productId, CreateProductPostDTO updateProductPostDTO);
         Task ChangeProductStatusAsync(int productId, string userId, string status);

@@ -281,11 +281,18 @@ namespace ChoSV.Services
             };
         }
 
-        public async Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userId, string? currentUserId, int page = 1, int pageSize = 10)
+        public async Task<PagedResult<ProductListItemDTO>> GetUserProductPostsAsync(string userName, string? currentUserId, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 100) pageSize = 100;
+
+            var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserName == userName);
+
+            if (user == null)
+            {
+                throw new ArgumentException("Người dùng không tồn tại!");
+            }
 
             var query = _dbContext.Products
                 .AsNoTracking()
@@ -293,7 +300,7 @@ namespace ChoSV.Services
                 .Include(p => p.ProductImages)
                 .Include(p => p.Favorites)
                 .Include(p => p.Categories)
-                .Where(p => p.SellerId == userId && (p.Status == "Approved" || p.Status == "Sold"))
+                .Where(p => p.SellerId == user.Id && (p.Status == "Approved" || p.Status == "Sold"))
                 .OrderByDescending(p => p.CreatedDate);
 
             var totalCount = await query.CountAsync();

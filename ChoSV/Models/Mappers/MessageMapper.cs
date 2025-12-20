@@ -43,6 +43,7 @@ namespace ChoSV.Models.Mappers
                 Content = message.Content,
                 CreatedDate = message.CreatedDate,
                 IsRead = message.IsRead,
+                OtherUserName = otherUser.UserName,
                 OtherUserId = otherUser.Id,
                 OtherUserFullName = otherUser.FullName,
                 OtherUserAvatar = otherUser.AvatarImage
