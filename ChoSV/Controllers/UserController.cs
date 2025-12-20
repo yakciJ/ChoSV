@@ -37,7 +37,7 @@ namespace ChoSV.Controllers
                 SameSite = SameSiteMode.None,
                 //Path = "/",
                 //SameSite = SameSiteMode.Strict,
-                Path = "/api/User/refreshToken",
+                Path = "/api/User",
                 Expires = DateTime.UtcNow.AddDays(refreshTokenExpirationDays)
             };
 
@@ -147,6 +147,25 @@ namespace ChoSV.Controllers
         {
             await _userService.ForgotPasswordAsync(email);
             return Ok(new { message = "Nếu email tồn tại, link đặt lại mật khẩu đã được gửi!" });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (refreshToken == null)
+            {
+                return BadRequest(new { message = "Không tìm thấy token" });
+            }
+            await _userService.LogoutAsync(refreshToken);
+            Response.Cookies.Delete("refreshToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+            });
+            return Ok(new { message = "Đăng xuất thành công!" });
         }
 
         [HttpPut("resetPassword")]

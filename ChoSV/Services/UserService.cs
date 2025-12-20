@@ -280,6 +280,16 @@ namespace ChoSV.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task LogoutAsync(string refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new ArgumentException("Refresh token không hợp lệ!");
+            }
+
+            await _tokenService.RevokeRefreshTokenAsync(refreshToken);
+        }
+
         // Admin func
         public async Task<PagedResult<AdminGetUserProfileDTO>> GetAllUsersByPageAsync(int page, int pageSize)
         {

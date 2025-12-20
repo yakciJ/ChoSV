@@ -18,6 +18,7 @@ namespace ChoSV.Services.Interfaces
         Task ForgotPasswordAsync(string email);
         Task ResetPasswordAsync(ResetPasswordDTO resetPasswordDTO);
         Task UpdateAvatarAsync(string userId, string avatarUrl);
+        Task LogoutAsync(string refreshToken);
 
         Task<PagedResult<AdminGetUserProfileDTO>> GetAllUsersByPageAsync(int page, int pageSize = 10);
         Task BanOrUnbanAsync(string userId);
