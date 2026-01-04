@@ -201,8 +201,10 @@ namespace ChoSV
 
             app.UseCors("DevelopmentPolicy");
 
-            app.UseHttpsRedirection();
-
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
             app.UseAuthentication();
 
             app.UseAuthorization();

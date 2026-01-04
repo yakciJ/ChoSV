@@ -16,6 +16,8 @@ namespace ChoSV.Services.Interfaces
         Task ChangeProductStatusAsync(int productId, string userId, string status);
         Task DeleteProductPostAsync(string userId, int productId);
 
+        Task<PagedResult<ProductListItemDTO>> GetSimilarProductsAsync(int productId, int page = 1, int pageSize = 10, string? userId = null);
+
         Task<PagedResult<ProductDetailListDTO>> AdminGetAllProductAsync(int page = 1, int pageSize = 10, string? status = null);
         Task<ProductDetailsDTO> AdminGetProductAsync(int productId);
         Task AdminUpdateProductStatusAsync(int productId, string status);
@@ -28,7 +30,7 @@ namespace ChoSV.Services.Interfaces
     //  Approved: Đã duyệt(hiện công khai cho mọi người xem/mua).
     //  Rejected: Bị từ chối(vi phạm quy định hoặc nội dung không hợp lệ).
     //  Sold: Sản phẩm đã bán xong.
-    //  Archived / Deleted: Bài đăng đã ẩn hoặc bị xóa.
+    //  Archived: Bài đăng đã ẩn hoặc bị xóa.
     // chắc là bỏ cái deleted đi nhỉ, tại xóa thì xóa luôn trong db cho nhanh.
 
     // Nhớ khi làm frontend: Khi người dùng upload ảnh lên mà k submit product (create or update) nhớ gọi api xóa đống đấy đi cho đỡ rác.

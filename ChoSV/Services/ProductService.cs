@@ -215,6 +215,91 @@ namespace ChoSV.Services
             };
         }
 
+        public async Task<PagedResult<ProductListItemDTO>> GetSimilarProductsAsync(int productId, int page = 1, int pageSize = 10, string? userId = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            // Check if product exists
+            var productExists = await _dbContext.Products.AnyAsync(p => p.ProductId == productId);
+            if (!productExists)
+            {
+                throw new ArgumentException("Sản phẩm không tồn tại!");
+            }
+
+            // Call AI service to get similar product IDs
+            var aiResponse = await CallAISimilarProductsServiceAsync(productId, page, pageSize);
+
+            if (aiResponse?.ProductIds == null || !aiResponse.ProductIds.Any())
+            {
+                return new PagedResult<ProductListItemDTO>
+                {
+                    Items = new List<ProductListItemDTO>(),
+                    TotalCount = 0,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
+
+            // Fetch products in the order returned by AI service
+            var orderedProducts = new List<Product>();
+            foreach (var pid in aiResponse.ProductIds)
+            {
+                var product = await _dbContext.Products
+                    .AsNoTracking()
+                    .Include(p => p.Seller)
+                    .Include(p => p.ProductImages)
+                    .Include(p => p.Favorites)
+                    .Include(p => p.Categories)
+                    .FirstOrDefaultAsync(p => p.ProductId == pid && (p.Status == "Approved" || p.Status == "Sold"));
+
+                if (product != null)
+                {
+                    orderedProducts.Add(product);
+                }
+            }
+
+            var productDTOs = orderedProducts.Select(p => p.ToProductListItemDTO(userId)).ToList();
+
+            return new PagedResult<ProductListItemDTO>
+            {
+                Items = productDTOs,
+                TotalCount = aiResponse.TotalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        private async Task<AISearchResponseDTO?> CallAISimilarProductsServiceAsync(int productId, int page, int pageSize)
+        {
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", _aiSettings.ApiKey);
+
+                var url = $"{_aiSettings.BaseUrl}/similar/{productId}?page={page}&page_size={pageSize}";
+
+                var response = await _httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<AISearchResponseDTO>(jsonResponse, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error calling AI Similar Products Service: {ex.Message}");
+                return null;
+            }
+        }
+
         public async Task<ProductDetailsDTO> GetProductByIdAsync(int productId, string? userId)
         {
             var product = await _dbContext.Products

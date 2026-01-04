@@ -54,6 +54,14 @@ namespace ChoSV.Controllers
             return Ok(product);
         }
 
+        [HttpGet("{productId}/similar")]
+        public async Task<IActionResult> GetSimilarProductsAsync(int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var products = await _productService.GetSimilarProductsAsync(productId, page, pageSize, userId);
+            return Ok(products);
+        }
+
         [HttpGet("me")]
         [Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> GetCurrentUserProductAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string status = null!)
