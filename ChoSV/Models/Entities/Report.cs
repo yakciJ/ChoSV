@@ -9,7 +9,7 @@ namespace ChoSV.Models.Entities
         [Required]
         public required string ReporterId { get; set; }
         [Required]
-        public required int ReportedEntityId { get; set; }
+        public required string ReportedEntityId { get; set; }
         [Required]
         [StringLength(50)]
         public required string ReportedEntityType { get; set; }

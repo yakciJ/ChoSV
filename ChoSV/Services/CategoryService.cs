@@ -33,7 +33,7 @@ namespace ChoSV.Services
 
             var totalProductCount = await _dbContext.Products
                 .Where(p => p.Categories.Any(c => c.CategoryId == categoryId) &&
-                   (p.Status == "Approved" || p.Status == "Sold"))
+                   (p.Status == "Approved"))
                 .CountAsync();
 
             int skip = (page - 1) * pageSize;

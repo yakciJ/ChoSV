@@ -301,7 +301,7 @@ namespace ChoSV.Services
 
             var totalCount = await _dbContext.Users.CountAsync();
 
-            var users = await _dbContext.Users.OrderBy(u => u.CreatedAt)
+            var users = await _dbContext.Users.OrderByDescending(u => u.CreatedAt)
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(pageSize)

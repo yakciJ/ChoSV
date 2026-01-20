@@ -15,11 +15,11 @@ namespace ChoSV.Services
         {
             _dbContext = dbContext;
         }
-        // giới hạn là Message, User, Post or Product, Comment or UserWallPost
+        // giới hạn là User, Post or Product, Comment or UserWallPost
 
         public async Task SendReportAsync(string reporterId, SendReportDTO sendReportDTO)
         {
-            var reportType = new string[] { "User", "Product", "Comment", "Message" };
+            var reportType = new string[] { "User", "Product", "Comment"};
             if (!reportType.Contains(sendReportDTO.ReportedEntityType))
             {
                 throw new ArgumentException("Kiểu báo cáo không hợp lệ!");

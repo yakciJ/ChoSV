@@ -66,7 +66,7 @@ namespace ChoSV.Services
                     .Include(p => p.ProductImages)
                     .Include(p => p.Favorites)
                     .Include(p => p.Categories)
-                    .Where(p => p.Status == "Approved" || p.Status == "Sold");
+                    .Where(p => p.Status == "Approved");
 
                 if (categoryId.HasValue)
                 {
@@ -252,7 +252,7 @@ namespace ChoSV.Services
                     .Include(p => p.ProductImages)
                     .Include(p => p.Favorites)
                     .Include(p => p.Categories)
-                    .FirstOrDefaultAsync(p => p.ProductId == pid && (p.Status == "Approved" || p.Status == "Sold"));
+                    .FirstOrDefaultAsync(p => p.ProductId == pid && (p.Status == "Approved"));
 
                 if (product != null)
                 {
@@ -265,7 +265,7 @@ namespace ChoSV.Services
             return new PagedResult<ProductListItemDTO>
             {
                 Items = productDTOs,
-                TotalCount = aiResponse.TotalCount,
+                TotalCount = productDTOs.Count,
                 Page = page,
                 PageSize = pageSize
             };
@@ -389,11 +389,6 @@ namespace ChoSV.Services
                 .OrderByDescending(p => p.CreatedDate);
 
             var totalCount = await query.CountAsync();
-
-            //if (totalCount == 0)
-            //{
-            //    throw new ArgumentException("Không có sản phẩm nào!");
-            //}
 
             var products = await query
                 .Skip((page - 1) * pageSize)
