@@ -43,7 +43,7 @@ namespace ChoSV.Controllers
 
         [HttpDelete("{reportId}")]
         [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> DeleteReportAsync(string reportId)
+        public async Task<IActionResult> DeleteReportAsync(int reportId)
         {
             await _reportService.DeleteReportAsync(reportId);
             return Ok(new { message = "Delete report successfully" });

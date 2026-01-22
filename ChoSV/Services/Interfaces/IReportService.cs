@@ -8,6 +8,6 @@ namespace ChoSV.Services.Interfaces
         Task SendReportAsync(string reporterId, SendReportDTO sendReportDTO);
         Task<PagedResult<GetReportDTO>> GetAllReportsAsync(int page = 1, int pageSize = 10, string? status = null);
         Task ChangeReportStatusAsync(ChangeReportStatusDTO changeReportStatusDTO);
-        Task DeleteReportAsync(string reportId);
+        Task DeleteReportAsync(int reportId);
     }
 }

@@ -736,7 +736,7 @@ namespace ChoSV.Services
             _dbContext.Products.Remove(product);
             await _dbContext.SaveChangesAsync();
 
-            await _notificationService.SendProductNotificationAsync(userId, productName);
+            //await _notificationService.SendProductNotificationAsync(userId, productName);
         }
 
         private async Task<AISearchResponseDTO?> CallAISearchServiceAsync(string search, int? categoryId, decimal? minPrice, decimal? maxPrice, int page, int pageSize)

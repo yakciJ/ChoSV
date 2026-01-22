@@ -14,9 +14,10 @@ namespace ChoSV.Services.Interfaces
 
         Task<int> GetUnreadNotificationCountAsync(string userId);
         Task SendProductNotificationAsync(Product product);
-        Task SendProductNotificationAsync(string userId, string productName);
-        Task SendUserWallPostNotificationAsync(UserWallPost userWallPost); // nguoi dung abc vua viet len tuong cua ban
-        Task UpdateNotificationAsync(int notificationId, string newMessage);
+
+        //Task SendProductNotificationAsync(string userId, string productName);
+        //Task SendUserWallPostNotificationAsync(UserWallPost userWallPost); // nguoi dung abc vua viet len tuong cua ban
+        //Task UpdateNotificationAsync(int notificationId, string newMessage);
         //Task SendMessageNotificationAsync(string receiverId, string senderId);
 
         //Task SendReportNotificationAsync(); // cai nay khi nao bi admin xu ly moi tinh nhi? khi đổi trạng thái của report từ pending sang Approved thì mới gửi thông báo cho cả 2, còn Rejected thì bỏ qua.

@@ -82,7 +82,8 @@ namespace ChoSV.Services
             }
             var query = _dbContext.Notifications
                 .AsNoTracking()
-                .Where(n => n.UserId == userId);
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt);
 
             var totalCount = await query.CountAsync();
 
@@ -104,7 +105,7 @@ namespace ChoSV.Services
 
         public async Task MarkAsReadAsync(string userId, int notificationId)
         {
-            var user = _dbContext.Users
+            var user = await _dbContext.Users
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
@@ -129,7 +130,7 @@ namespace ChoSV.Services
         {
             var totalCount = await _dbContext.Notifications
                 .AsNoTracking()
-                .Where(n => n.UserId == userId)
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .CountAsync();
             return totalCount;
         }
@@ -168,6 +169,7 @@ namespace ChoSV.Services
                 message = $"Sản phẩm {product.ProductName} của bạn đã bị từ chối!";
 
             }
+            else return;
             var noti = new SendNotificationDTO
             {
                 UserId = product.SellerId,
@@ -176,42 +178,42 @@ namespace ChoSV.Services
             };
             await SendNotificationAsync(noti);
         }
-        public async Task SendProductNotificationAsync(string userId, string productName)
-        {
-            var message = $"Sản phẩm {productName} của bạn đã bị xóa!";
-            var noti = new SendNotificationDTO
-            {
-                UserId = userId,
-                Message = message,
-            };
-            await SendNotificationAsync(noti);
-        }
+        //public async Task SendProductNotificationAsync(string userId, string productName)
+        //{
+        //    var message = $"Sản phẩm {productName} của bạn đã bị xóa!";
+        //    var noti = new SendNotificationDTO
+        //    {
+        //        UserId = userId,
+        //        Message = message,
+        //    };
+        //    await SendNotificationAsync(noti);
+        //}
 
-        public async Task SendUserWallPostNotificationAsync(UserWallPost userWallPost)
-        {
-            var message = $"Người dùng {userWallPost.Owner.UserName} vừa bình luận lên tường của bạn";
-            var noti = new SendNotificationDTO
-            {
-                UserId = userWallPost.UserWallOwnerId,
-                Message = message,
-                UserWallPostId = userWallPost.UserWallPostId,
-                FromUserId = userWallPost.PosterId
-            };
-            await SendNotificationAsync(noti);
-        }
+        //public async Task SendUserWallPostNotificationAsync(UserWallPost userWallPost)
+        //{
+        //    var message = $"Người dùng {userWallPost.Owner.UserName} vừa bình luận lên tường của bạn";
+        //    var noti = new SendNotificationDTO
+        //    {
+        //        UserId = userWallPost.UserWallOwnerId,
+        //        Message = message,
+        //        UserWallPostId = userWallPost.UserWallPostId,
+        //        FromUserId = userWallPost.PosterId
+        //    };
+        //    await SendNotificationAsync(noti);
+        //}
 
-        public async Task UpdateNotificationAsync(int notificationId, string newMessage)
-        {
-            var noti = await _dbContext.Notifications
-                .Where(n => n.NotificationId == notificationId)
-                .FirstOrDefaultAsync();
-            if (noti == null)
-            {
-                throw new ArgumentException("Thông báo không tồn tại!");
-            }
-            noti.Message = newMessage;
-            await _dbContext.SaveChangesAsync();
-        }
+        //public async Task UpdateNotificationAsync(int notificationId, string newMessage)
+        //{
+        //    var noti = await _dbContext.Notifications
+        //        .Where(n => n.NotificationId == notificationId)
+        //        .FirstOrDefaultAsync();
+        //    if (noti == null)
+        //    {
+        //        throw new ArgumentException("Thông báo không tồn tại!");
+        //    }
+        //    noti.Message = newMessage;
+        //    await _dbContext.SaveChangesAsync();
+        //}
 
         //public async Task SendMessageNotificationAsync(string receiverId, string senderName)
         //{

@@ -19,17 +19,10 @@ namespace ChoSV.Services
 
         public async Task SendReportAsync(string reporterId, SendReportDTO sendReportDTO)
         {
-            var reportType = new string[] { "User", "Product", "Comment"};
+            var reportType = new string[] { "User", "Product", "Comment" };
             if (!reportType.Contains(sendReportDTO.ReportedEntityType))
             {
                 throw new ArgumentException("Kiểu báo cáo không hợp lệ!");
-            }
-            var report = await _dbContext.Reports
-                .Where(r => r.ReporterId == reporterId && r.ReportedEntityId == sendReportDTO.ReportedEntityId && r.ReportedEntityType == sendReportDTO.ReportedEntityType)
-                .FirstOrDefaultAsync();
-            if (report != null)
-            {
-                throw new ArgumentException("Bạn đã báo cáo rồi!");
             }
             var newReport = new Report
             {
@@ -48,6 +41,16 @@ namespace ChoSV.Services
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 100) pageSize = 100;
+
+            // Validate status parameter
+            if (!string.IsNullOrEmpty(status))
+            {
+                var validStatuses = new string[] { "Pending", "Approved", "Rejected" };
+                if (!validStatuses.Contains(status))
+                {
+                    throw new ArgumentException("Trạng thái báo cáo không hợp lệ! Chỉ chấp nhận: Pending, Approved, Rejected");
+                }
+            }
 
             var query = _dbContext.Reports
                 .AsNoTracking()
@@ -74,6 +77,12 @@ namespace ChoSV.Services
         }
         public async Task ChangeReportStatusAsync(ChangeReportStatusDTO changeReportStatusDTO)
         {
+            var validStatuses = new string[] { "Pending", "Approved", "Rejected" };
+            if (!validStatuses.Contains(changeReportStatusDTO.Status))
+            {
+                throw new ArgumentException("Trạng thái báo cáo không hợp lệ! Chỉ chấp nhận: Pending, Approved, Rejected");
+            }
+
             var report = await _dbContext.Reports.FindAsync(changeReportStatusDTO.ReportId);
             if (report == null)
             {
@@ -83,7 +92,7 @@ namespace ChoSV.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteReportAsync(string reportId)
+        public async Task DeleteReportAsync(int reportId)
         {
             var report = await _dbContext.Reports.FindAsync(reportId);
             if (report == null)

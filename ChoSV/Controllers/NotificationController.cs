@@ -75,20 +75,20 @@ namespace ChoSV.Controllers
             return Ok(new { message = "Gửi thông báo thành công!" });
         }
 
-        [HttpPost("all")]
-        [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> SendNotificationToAllUserAsync(string message)
-        {
-            await _notificationService.SendNotificationToAllUserAsync(message);
-            return Ok(new { message = "Gửi thông báo thành công!" });
-        }
+        //[HttpPost("all")]
+        //[Authorize(Policy = "AdminPolicy")]
+        //public async Task<IActionResult> SendNotificationToAllUserAsync(string message)
+        //{
+        //    await _notificationService.SendNotificationToAllUserAsync(message);
+        //    return Ok(new { message = "Gửi thông báo thành công!" });
+        //}
 
-        [HttpPut("admin/{notificationId}")]
-        [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> UpdateNotificationAsync(int notificationId, string message)
-        {
-            await _notificationService.UpdateNotificationAsync(notificationId, message);
-            return Ok(new { message = "Cập nhật thông báo thành công!" });
-        }
+        //[HttpPut("admin/{notificationId}")]
+        //[Authorize(Policy = "AdminPolicy")]
+        //public async Task<IActionResult> UpdateNotificationAsync(int notificationId, string message)
+        //{
+        //    await _notificationService.UpdateNotificationAsync(notificationId, message);
+        //    return Ok(new { message = "Cập nhật thông báo thành công!" });
+        //}
     }
 }
