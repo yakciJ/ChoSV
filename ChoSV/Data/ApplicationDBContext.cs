@@ -23,6 +23,8 @@ namespace ChoSV.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserViewHistory> UserViewHistories { get; set; }
 
+        public DbSet<University> Universities { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

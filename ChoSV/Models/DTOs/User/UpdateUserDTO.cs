@@ -10,5 +10,6 @@ namespace ChoSV.Models.DTOs.User
         [RegularExpression(@"^(?:\+84|0)[3|5|7|8|9]\d{8}$",
         ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? PhoneNumber { get; set; }
+        public int? UniversityId { get; set; }
     }
 }

@@ -49,7 +49,7 @@ namespace ChoSV.Controllers
             return Ok(new { message = "Xóa lịch sử xem thành công!" });
         }
         [HttpGet("my-history")]
-        public async Task<IActionResult> GetMyViewHistory([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<IActionResult> GetMyViewHistory([FromQuery] int page, [FromQuery] int pageSize)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)

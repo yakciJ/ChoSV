@@ -10,6 +10,7 @@
         public string? Bio { get; set; }
         public string? AvatarImage { get; set; }
         public string? Address { get; set; }
+        public string? UniversityName { get; set; }
         public string? PhoneNumber { get; set; }
         public bool IsBanned { get; set; }
         public int WarningCount { get; set; }

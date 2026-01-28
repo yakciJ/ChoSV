@@ -20,7 +20,7 @@ namespace ChoSV.Services.Interfaces
         Task UpdateAvatarAsync(string userId, string avatarUrl);
         Task LogoutAsync(string refreshToken);
 
-        Task<PagedResult<AdminGetUserProfileDTO>> GetAllUsersByPageAsync(int page, int pageSize = 10);
+        Task<PagedResult<AdminGetUserProfileDTO>> GetAllUsersByPageAsync(int page, int pageSize);
         Task BanOrUnbanAsync(string userId);
         // xem thông tin cá nhân và của người dùng khác là chung. sau thêm được cái setting hiển thị thông tin hay không thì sẽ làm riêng sau.
         // về admin: lấy thông tin chi tiết người dùng? nếu cần tại cũng gần giống của user rồi,  cảnh cáo người dùng, xóa cảnh cáo,...

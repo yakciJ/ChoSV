@@ -6,6 +6,7 @@
         public required string UserName { get; set; }
         public string? FullName { get; set; }
         public required string Email { get; set; }
+        public string? UniversityName { get; set; }
         public string? PhoneNumber { get; set; }
         public string? AvatarImage { get; set; }
         public string? Bio { get; set; }

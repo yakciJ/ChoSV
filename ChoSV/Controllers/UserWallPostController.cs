@@ -17,7 +17,7 @@ namespace ChoSV.Controllers
         }
 
         [HttpGet("{userName}")]
-        public async Task<IActionResult> GetUserWallPostByUserName(string userName, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetUserWallPostByUserName(string userName, int page, int pageSize)
         {
             return Ok(await _userWallPostService.GetUserWallPostByUserName(userName, page, pageSize));
         }
@@ -64,7 +64,7 @@ namespace ChoSV.Controllers
 
         [HttpGet]
         [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> GetAllUserWallPostAsync(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetAllUserWallPostAsync(int page, int pageSize)
         {
             return Ok(await _userWallPostService.GetAllUserWallPostsAsync(page, pageSize));
         }

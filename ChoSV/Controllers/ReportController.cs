@@ -27,7 +27,7 @@ namespace ChoSV.Controllers
         }
         [HttpGet]
         [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> GetAllReportsASync([FromQuery] int page = 1, [FromQuery] int pageSize = 10, string? status = null)
+        public async Task<IActionResult> GetAllReportsASync([FromQuery] int page, [FromQuery] int pageSize, string? status)
         {
             var result = await _reportService.GetAllReportsAsync(page, pageSize, status);
             return Ok(result);

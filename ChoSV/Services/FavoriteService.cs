@@ -16,7 +16,7 @@ namespace ChoSV.Services
             _dbContext = dbContext;
         }
 
-        public async Task<PagedResult<ProductListItemDTO>> GetAllFavoriteProductsAsync(string userId, int page, int pageSize)
+        public async Task<PagedResult<ProductListItemDTO>> GetAllFavoriteProductsAsync(string userId, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;

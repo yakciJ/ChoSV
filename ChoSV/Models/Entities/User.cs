@@ -13,10 +13,13 @@ namespace ChoSV.Models.Entities
         public string? AvatarImage { get; set; }
         public string? Bio { get; set; }
         public string? Address { get; set; }
+        public int? UniversityId { get; set; }
         public bool IsBanned { get; set; } = false;
         public int WarningCount { get; set; } = 0;
         public DateTime LastWarning { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [ForeignKey("UniversityId")]
+        public virtual University? University { get; set; }
         [InverseProperty("User")]
         public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
         [InverseProperty("Sender")]

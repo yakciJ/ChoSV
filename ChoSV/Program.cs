@@ -180,6 +180,7 @@ namespace ChoSV
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<IUserViewHistory, UserViewHistoryService>();
             builder.Services.AddScoped<IImageService, ImageService>();
+            builder.Services.AddScoped<IUniversityService, UniversityService>();
 
             builder.Services.AddHttpClient();
             builder.Services.Configure<AISettings>(builder.Configuration.GetSection("AIService"));

@@ -177,7 +177,7 @@ namespace ChoSV.Controllers
 
         [HttpGet("admin/users")]
         [Authorize(Policy = "AdminPolicy")]
-        public async Task<IActionResult> GetAllUsersAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllUsersAsync([FromQuery] int page, [FromQuery] int pageSize)
         {
             var result = await _userService.GetAllUsersByPageAsync(page, pageSize);
             return Ok(result);

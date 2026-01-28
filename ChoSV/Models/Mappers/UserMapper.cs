@@ -17,6 +17,7 @@ namespace ChoSV.Models.Mappers
                 AvatarImage = user.AvatarImage,
                 Bio = user.Bio,
                 Address = user.Address,
+                UniversityName = user.University?.UniversityName,
                 CreatedAt = user.CreatedAt
             };
         }
@@ -33,6 +34,7 @@ namespace ChoSV.Models.Mappers
                 Bio = user.Bio,
                 AvatarImage = user.AvatarImage,
                 Address = user.Address,
+                UniversityName = user.University?.UniversityName,
                 PhoneNumber = user.PhoneNumber,
                 IsBanned = user.IsBanned,
                 WarningCount = user.WarningCount,

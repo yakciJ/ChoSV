@@ -19,7 +19,7 @@ namespace ChoSV.Controllers
         }
 
         [HttpGet("history/{otherUserId}")]
-        public async Task<IActionResult> GetChatHistory(string otherUserId, int page = 1, int pageSize = 50)
+        public async Task<IActionResult> GetChatHistory(string otherUserId, int page, int pageSize)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)

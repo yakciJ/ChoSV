@@ -9,7 +9,7 @@ namespace ChoSV.Services.Interfaces
         string GenerateRefreshToken();
         ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
 
-        Task SaveRefreshTokenAsync(bool rememberMe, string userId, string refreshToken, string? deviceInfo = null, string? ipAddress = null);
+        Task SaveRefreshTokenAsync(bool rememberMe, string userId, string refreshToken, string? deviceInfo, string? ipAddress);
         Task<RefreshToken?> GetRefreshTokenAsync(string token);
         Task RevokeRefreshTokenAsync(string token);
         Task RevokeAllUserRefreshTokensAsync(string userId);

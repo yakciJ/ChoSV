@@ -42,8 +42,8 @@ namespace ChoSV.Services
                 var userRole = await _userManager.AddToRoleAsync(user, "User");
                 if (userRole.Succeeded)
                 {
-                    //var emailConfirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    //await _emailService.SendConfirmEmailAsync(registerDTO.Email, registerDTO.UserName, emailConfirmToken);
+                    var emailConfirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    await _emailService.SendConfirmEmailAsync(registerDTO.Email, registerDTO.UserName, emailConfirmToken);
                     return true;
                 }
                 else throw new ArgumentException("Thêm vai trò thất bại!");
@@ -143,6 +143,7 @@ namespace ChoSV.Services
         public async Task<GetUserProfileDTO> GetUserByUserNameAsync(string userName)
         {
             var user = await _dbContext.Users
+                .Include(u => u.University)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserName == userName);
             if (user == null)
@@ -154,7 +155,10 @@ namespace ChoSV.Services
 
         public async Task<GetUserProfileDTO> GetCurrentUserProfileAsync(string userId)
         {
-            var user = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await _dbContext.Users
+                .Include(u => u.University)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("Người dùng không tồn tại!");
@@ -180,6 +184,9 @@ namespace ChoSV.Services
 
             if (!string.IsNullOrEmpty(updateUserDTO.PhoneNumber))
                 user.PhoneNumber = updateUserDTO.PhoneNumber;
+
+            if (updateUserDTO.UniversityId.HasValue)
+                user.UniversityId = updateUserDTO.UniversityId.Value;
 
             var res = await _userManager.UpdateAsync(user);
             if (!res.Succeeded)
@@ -302,6 +309,7 @@ namespace ChoSV.Services
             var totalCount = await _dbContext.Users.CountAsync();
 
             var users = await _dbContext.Users.OrderByDescending(u => u.CreatedAt)
+                .Include(u => u.University)
                 .AsNoTracking()
                 .Skip(skip)
                 .Take(pageSize)

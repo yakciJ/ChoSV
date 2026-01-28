@@ -5,7 +5,7 @@ namespace ChoSV.Services.Interfaces
 {
     public interface IUserViewHistory
     {
-        Task<PagedResult<GetUserViewHistories>> GetUserViewHistories(string userId, int page = 1, int pageSize = 20);
+        Task<PagedResult<GetUserViewHistories>> GetUserViewHistories(string userId, int page, int pageSize);
         Task SawProduct(string userId, int productId);
         Task DeleteHistory(string userId, int productId);
         Task DeleteHistories(string userId);

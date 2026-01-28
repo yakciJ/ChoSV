@@ -17,7 +17,7 @@ namespace ChoSV.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFavoriteProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAllFavoriteProducts([FromQuery] int page, [FromQuery] int pageSize)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
