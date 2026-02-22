@@ -53,6 +53,12 @@ namespace ChoSV.Data
                 .HasForeignKey(f => f.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.University)
+                .WithMany()
+                .HasForeignKey(u => u.UniversityId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // ✅ ADD THIS - Fix Product-User relationship
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Seller)

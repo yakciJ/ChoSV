@@ -305,6 +305,7 @@ namespace ChoSV.Services
             var product = await _dbContext.Products
                 .AsNoTracking()
                 .Include(p => p.Seller)
+                    .ThenInclude(s => s.University)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Favorites)
                 .Include(p => p.Categories)

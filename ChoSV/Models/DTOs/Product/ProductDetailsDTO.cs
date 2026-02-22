@@ -15,6 +15,7 @@
 
         public string? SellerFullName { get; set; }
         public string? SellerAvatarImage { get; set; }
+        public string? SellerUniversity { get; set; }
         public string? SellerEmail { get; set; }
         public DateTime SellerJoinedDate { get; set; }
 

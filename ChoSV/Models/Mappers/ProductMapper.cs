@@ -28,6 +28,7 @@ namespace ChoSV.Models.Mappers
                 SellerEmail = product.Seller?.Email,
                 SellerAddress = product.Seller?.Address,
                 SellerPhone = product.Seller?.PhoneNumber,
+                SellerUniversity = product.Seller?.University?.UniversityName ?? string.Empty,
                 SellerJoinedDate = product.Seller?.CreatedAt ?? DateTime.MinValue,
 
                 // Product images
