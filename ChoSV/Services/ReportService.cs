@@ -1,5 +1,6 @@
 ﻿using ChoSV.Data;
 using ChoSV.Models.DTOs.Common;
+using ChoSV.Models.DTOs.Notification;
 using ChoSV.Models.DTOs.Report;
 using ChoSV.Models.Entities;
 using ChoSV.Models.Mappers;
@@ -11,9 +12,12 @@ namespace ChoSV.Services
     public class ReportService : IReportService
     {
         private readonly ApplicationDBContext _dbContext;
-        public ReportService(ApplicationDBContext dbContext)
+        private readonly INotificationService _notificationService;
+
+        public ReportService(ApplicationDBContext dbContext, INotificationService notificationService)
         {
             _dbContext = dbContext;
+            _notificationService = notificationService;
         }
         // giới hạn là User, Post or Product, Comment or UserWallPost
 
@@ -83,13 +87,23 @@ namespace ChoSV.Services
                 throw new ArgumentException("Trạng thái báo cáo không hợp lệ! Chỉ chấp nhận: Pending, Approved, Rejected");
             }
 
-            var report = await _dbContext.Reports.FindAsync(changeReportStatusDTO.ReportId);
+            var report = await _dbContext.Reports
+                .Include(r => r.Reporter)
+                .FirstOrDefaultAsync(r => r.ReportId == changeReportStatusDTO.ReportId);
             if (report == null)
             {
                 throw new ArgumentException("Báo cáo không tồn tại!");
             }
+
+            string oldStatus = report.Status;
             report.Status = changeReportStatusDTO.Status;
             await _dbContext.SaveChangesAsync();
+
+            // Send notifications only when status changes from Pending to Approved
+            if (oldStatus == "Pending" && changeReportStatusDTO.Status == "Approved")
+            {
+                await SendReportNotificationsAsync(report);
+            }
         }
 
         public async Task DeleteReportAsync(int reportId)
@@ -101,6 +115,70 @@ namespace ChoSV.Services
             }
             _dbContext.Reports.Remove(report);
             await _dbContext.SaveChangesAsync();
+        }
+
+        private async Task SendReportNotificationsAsync(Report report)
+        {
+            // Notification to the reporter (person who submitted the report)
+            var reporterNotification = new SendNotificationDTO
+            {
+                UserId = report.ReporterId,
+                Message = $"Cảm ơn bạn đã báo cáo! Chúng tôi đã xử lý báo cáo của bạn về {GetEntityTypeName(report.ReportedEntityType)}."
+            };
+            await _notificationService.SendNotificationAsync(reporterNotification);
+
+            // Get the reported user ID based on entity type
+            string? reportedUserId = await GetReportedUserIdAsync(report);
+
+            if (!string.IsNullOrEmpty(reportedUserId))
+            {
+                // Notification to the reported user
+                string message = string.Empty;
+                if (report.ReportedEntityType == "User")
+                {
+                    message = $"Bạn đã vi phạm quy định của nền tảng và đã bị xử lý.";
+                }
+                else
+                {
+                    message = $"{GetEntityTypeName(report.ReportedEntityType)} của bạn đã vi phạm quy định của nền tảng và đã bị xử lý.";
+                }
+                var reportedUserNotification = new SendNotificationDTO
+                {
+                    UserId = reportedUserId,
+                    Message = message
+                };
+                await _notificationService.SendNotificationAsync(reportedUserNotification);
+            }
+        }
+
+        private async Task<string?> GetReportedUserIdAsync(Report report)
+        {
+            return report.ReportedEntityType switch
+            {
+                "User" => report.ReportedEntityId,
+                "Product" => await _dbContext.Products
+                    .AsNoTracking()
+                    .Where(p => p.ProductId.ToString() == report.ReportedEntityId)
+                    .Select(p => p.SellerId)
+                    .FirstOrDefaultAsync(),
+                "Comment" => await _dbContext.UserWallPosts
+                    .AsNoTracking()
+                    .Where(c => c.UserWallPostId.ToString() == report.ReportedEntityId)
+                    .Select(c => c.PosterId)
+                    .FirstOrDefaultAsync(),
+                _ => null
+            };
+        }
+
+        private static string GetEntityTypeName(string entityType)
+        {
+            return entityType switch
+            {
+                "User" => "Người dùng",
+                "Product" => "Sản phẩm",
+                "Comment" => "Đánh giá",
+                _ => "Nội dung"
+            };
         }
     }
 }
